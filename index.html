@@ -254,7 +254,8 @@
 
         <div class="info-card">
             <h2 style="margin-top:0;">📅 台北 - 東京 航班來回總價</h2>
-            <p style="font-size: 0.9em; color: #666; margin-bottom: 15px;">* 點擊價格欄位可自動總結天數，表格支援上下左右滑動。</p>
+            <p style="font-size: 0.9em; color: #666; margin-bottom: 15px;">\點擊價格欄位可自動總結選取天數/
+          \價格波動大，購買前請再確認/</p>
             <div id="matrix-wrapper" style="overflow: auto; max-height: 500px; width: 100%; border-radius: 8px; box-shadow: inset 0 0 10px rgba(0,0,0,0.05);">
                 </div>
         </div>
@@ -422,7 +423,7 @@
 
         // 繪製全月矩陣
         let tableHtml = '<table class="flight-matrix" id="mainMatrix">';
-        tableHtml += '<thead><tr><th class="sticky-corner">點日期找最優 ➔</th>';
+        tableHtml += '<thead><tr><th class="sticky-corner">點日期找最優 ↓</th>';
         for(let r = 3; r <= 36; r++) { 
             let label = r > 31 ? `2/${(r-31).toString().padStart(2, '0')}` : `1/${r.toString().padStart(2, '0')}`;
             tableHtml += `<th>${label}</th>`;
