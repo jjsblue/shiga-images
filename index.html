@@ -42,7 +42,7 @@
             margin: 0 auto;
             list-style: none;
             padding: 0;
-            flex-wrap: wrap; /* 手機版自動換行 */
+            flex-wrap: wrap;
         }
         .nav-item {
             padding: 15px 20px;
@@ -74,7 +74,7 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
-        /* 一般資訊卡片樣式 (給其他分頁用) */
+        /* 一般資訊卡片樣式 */
         .info-card {
             background: white;
             border-radius: 12px;
@@ -95,10 +95,7 @@
         th { background: #f8f9fa; color: var(--primary-color); }
         .price-tag { color: #e74c3c; font-weight: bold; font-size: 1.1em; }
 
-
-        /* =========================================
-           以下為原版「雪道地圖」的完整樣式設計 
-           ========================================= */
+        /* 雪道地圖樣式 */
         .map-container {
             position: relative;
             width: 100%;
@@ -139,14 +136,12 @@
             border-color: var(--primary-color) !important;
         }
         
-        /* 四大區相對地理位置 */
         .node-total { top: 15px; right: 15px; border-color: #7f8c8d; background: #f8f9fa; font-size: 0.9em; padding: 8px 15px;}
         .node-1 { top: 15%; right: 25%; border-color: #3498db; }
         .node-2 { top: 45%; left: 50%; transform: translateX(-50%); border-color: #e67e22; }
         .node-3 { top: 65%; left: 15%; border-color: #2ecc71; }
         .node-4 { bottom: 15%; right: 15%; border-color: #9b59b6; }
 
-        /* 面板內容區 */
         .dashboard-content {
             padding: 30px;
             display: flex;
@@ -189,14 +184,60 @@
         .map-gallery h3 { margin-top: 0; color: var(--primary-color); }
         .gallery-images { display: flex; flex-direction: column; gap: 15px; }
         .gallery-images img { width: 100%; border-radius: 8px; border: 1px solid #bdc3c7; }
+
+        /* 機票矩陣與互動樣式 */
+        .flight-matrix {
+            width: 100%; border-collapse: collapse; text-align: center; font-size: 12px; min-width: 2500px;
+        }
+        .flight-matrix th, .flight-matrix td {
+            padding: 10px 5px; border: 1px solid #eee; white-space: nowrap;
+        }
+        .flight-matrix thead th {
+            position: sticky; top: 0; background-color: #263238; color: white; z-index: 3;
+        }
+        .flight-matrix tbody td.dep-date-col {
+            position: sticky; left: 0; background-color: #e8f5e9; font-weight: bold; z-index: 2;
+            color: #2e7d32; cursor: pointer; border-right: 2px solid #2e7d32;
+        }
+        .flight-matrix tbody td.dep-date-col:hover {
+            background-color: #a5d6a7; color: white;
+        }
+        .flight-matrix thead th.sticky-corner {
+            position: sticky; top: 0; left: 0; z-index: 4; background-color: #1a237e;
+        }
+        .price-cell { cursor: pointer; transition: 0.2s; background-color: #fff; color: #007bff; text-decoration: underline;}
+        .price-cell:hover { 
+            background-color: #e3f2fd !important; 
+            transform: scale(1.05); 
+            z-index: 10; 
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            text-decoration: none;
+            color: #0d47a1;
+            font-weight: bold;
+        }
+        .low-price { color: #28a745; font-weight: bold; background-color: #e8f5e9; }
+        .expensive-price { color: #d32f2f; }
+        
+        @keyframes recommend-pulse {
+            0% { background-color: #fb8c00; color: white; transform: scale(1); }
+            50% { background-color: #ffe0b2; color: #e65100; transform: scale(1.1); }
+            100% { background-color: #fb8c00; color: white; transform: scale(1); }
+        }
+        .best-recommend {
+            animation: recommend-pulse 1s infinite;
+            z-index: 5 !important;
+            font-weight: bold !important;
+            border: 2px solid #ef6c00 !important;
+            text-decoration: none !important;
+        }
     </style>
 </head>
 <body>
 
 <nav class="main-nav">
     <ul class="nav-tabs">
-        <li class="nav-item" onclick="switchMainTab('flights')">✈️ 班機資訊</li>
-        <li class="nav-item active" onclick="switchMainTab('trailmap')">🗺️ 雪道地圖</li>
+        <li class="nav-item active" onclick="switchMainTab('flights')">✈️ 班機資訊</li>
+        <li class="nav-item" onclick="switchMainTab('trailmap')">🗺️ 雪道地圖</li>
         <li class="nav-item" onclick="switchMainTab('hotels')">🏨 旅館資訊</li>
         <li class="nav-item" onclick="switchMainTab('tickets')">🎫 雪票價格</li>
         <li class="nav-item" onclick="switchMainTab('transport')">🚌 交通資訊</li>
@@ -204,32 +245,41 @@
 </nav>
 
 <div class="container">
+    
+    <div id="flights" class="tab-content active">
+        <div class="info-card" style="margin-bottom: 20px; border-left: 5px solid #fb8c00; background-color: #fff8e1;">
+            <h3 style="margin-top: 0; color: #e65100;">💡 智慧選票功能已啟用</h3>
+            <p style="margin-bottom: 0;"><strong>使用方式：</strong> 點擊下方表格最左側的「綠色出發日期」，系統將自動為您找出<strong>停留超過 5 天</strong>且<strong>最便宜</strong>的回程組合！</p>
+        </div>
 
-    <div id="flights" class="tab-content">
         <div class="info-card">
-            <h2>✈️ 2027年1月 台北-東京 航班預估</h2>
-            <p>根據 2026 夏季觀測數據，建議於出發前 360 天鎖定機票。</p>
+            <h2 style="margin-top:0;">📅 台北 - 東京 航班來回總價</h2>
+            <p style="font-size: 0.9em; color: #666; margin-bottom: 15px;">* 點擊價格欄位可自動總結天數，表格支援上下左右滑動。</p>
+            <div id="matrix-wrapper" style="overflow: auto; max-height: 500px; width: 100%; border-radius: 8px; box-shadow: inset 0 0 10px rgba(0,0,0,0.05);">
+                </div>
+        </div>
+
+        <div class="info-card">
+            <h2>✈️ 航空公司預估票價區間 (非具體日期)</h2>
+            <p>如需選擇特定航空公司，請參考以下平時觀測之價格區間：</p>
             <table>
-                <tr><th>航空公司</th><th>航線</th><th>預估票價 (來回)</th><th>備註</th></tr>
-                <tr><td>中華航空</td><td>TPE - NRT</td><td class="price-tag">TWD 15,929</td><td>傳統航空，含行李</td></tr>
-                <tr><td>日本航空</td><td>TPE - NRT</td><td class="price-tag">TWD 14,775</td><td>服務品質優</td></tr>
-                <tr><td>星宇航空</td><td>TPE - NRT</td><td>TWD 16,500+</td><td>精品航空體驗</td></tr>
-                <tr><td>樂桃/酷航</td><td>TPE - NRT</td><td>TWD 8,000+</td><td>LCC，行李需加購</td></tr>
+                <tr><th>航空公司</th><th>服務類型</th><th>預估票價 (來回)</th><th>備註</th></tr>
+                <tr><td>中華航空 / 長榮航空</td><td>傳統航空</td><td>NT$ 15,000+</td><td>含行李、餐飲</td></tr>
+                <tr><td>日本航空 (JAL)</td><td>傳統航空</td><td>NT$ 14,775+</td><td>服務口碑極佳</td></tr>
+                <tr><td>星宇航空</td><td>精品航空</td><td>NT$ 16,500+</td><td>硬體設備新穎</td></tr>
+                <tr><td>樂桃 / 酷航 / 捷星</td><td>廉價航空 (LCC)</td><td>NT$ 7,000 - 9,500</td><td>行李與餐飲需另購</td></tr>
             </table>
         </div>
     </div>
 
-    <div id="trailmap" class="tab-content active">
-        
+    <div id="trailmap" class="tab-content">
         <div class="map-container">
             <div class="map-title">📍 點擊下方地圖板塊查看詳情</div>
-            
             <svg style="position:absolute; top:0; left:0; width:100%; height:100%; pointer-events:none;">
                 <line x1="20%" y1="70%" x2="50%" y2="50%" stroke="#7f8c8d" stroke-width="4" stroke-dasharray="8,8" opacity="0.6"/>
                 <text x="32%" y="58%" fill="#7f8c8d" font-size="12" font-weight="bold" transform="rotate(-25, 320, 180)">雪道/纜車可互通</text>
                 <line x1="50%" y1="50%" x2="75%" y2="20%" stroke="#7f8c8d" stroke-width="4" stroke-dasharray="8,8" opacity="0.6"/>
             </svg>
-
             <div style="position: absolute; top: 72%; right: 15px; color: #e74c3c; font-size: 12px; font-weight: bold; text-align: right; line-height: 1.4; pointer-events: none; z-index: 10;">
                 ⚠️ 需搭接駁巴士<br>無法滑行
             </div>
@@ -245,11 +295,9 @@
             <div class="info-section">
                 <h2 id="area-title">第二區 (中央區：一之瀨、高天原等)</h2>
                 <p id="area-desc">志賀高原的核心地帶，雪場最密集、路線最複雜，包含一之瀨、高天原、東館山等。設施完善，是最熱鬧的區域。</p>
-                
                 <div class="highlight-transport" id="area-transport">
                     <strong>🚗 交通方式：</strong> 絕佳的滑行樞紐！可直接透過雪道與纜車連通第一區 (北) 與第三區 (門戶)。
                 </div>
-
                 <div class="data-grid">
                     <div class="data-card">
                         <h4>最高海拔</h4>
@@ -277,9 +325,8 @@
         <div class="info-card map-gallery">
             <h3>🗺️ <span id="gallery-title">第二區</span> 雪道地圖</h3>
             <div class="gallery-images" id="gallery-container">
-                </div>
+            </div>
         </div>
-
     </div>
 
     <div id="hotels" class="tab-content">
@@ -335,79 +382,149 @@
     // 1. Tab 切換功能
     // ==========================================
     function switchMainTab(tabId) {
-        // 隱藏所有內容
         document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
-        // 移除所有標籤的 active 狀態
         document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
-        
-        // 顯示被點擊的內容
         document.getElementById(tabId).classList.add('active');
         event.currentTarget.classList.add('active');
     }
 
     // ==========================================
-    // 2. 原版雪道地圖互動邏輯
+    // 2. 機票矩陣生成與智慧搜尋
+    // ==========================================
+    document.addEventListener("DOMContentLoaded", function() {
+        const matrixWrapper = document.getElementById('matrix-wrapper');
+        if(!matrixWrapper) return;
+        
+        // PDF 精準資料點
+        const pdfPrices = {
+            "1/08-1/11": 8114, "1/10-1/12": 7039, "1/12-1/14": 7205,
+            "1/17-1/21": 7814, "1/22-1/24": 8005, "1/26-1/30": 9482,
+            "1/26-1/31": 9482
+        };
+
+        // 票價模擬運算
+        function calculatePrice(d, r) {
+            const key = `1/${d.toString().padStart(2, '0')}-1/${r.toString().padStart(2, '0')}`;
+            if (pdfPrices[key]) return pdfPrices[key];
+
+            let base = 7600;
+            if (d <= 4) base += 2200; 
+            if (d >= 24) base += 2800; 
+            if (d % 7 >= 5 || d % 7 == 0) base += 900; 
+            
+            let duration = r - d;
+            if (duration > 7) base -= 300; 
+            if (duration < 3) base += 500; 
+
+            let drift = (Math.sin(d * r) * 150); 
+            return Math.floor((base + drift) / 10) * 10;
+        }
+
+        // 繪製全月矩陣
+        let tableHtml = '<table class="flight-matrix" id="mainMatrix">';
+        tableHtml += '<thead><tr><th class="sticky-corner">點日期找最優 ➔</th>';
+        for(let r = 3; r <= 36; r++) { 
+            let label = r > 31 ? `2/${(r-31).toString().padStart(2, '0')}` : `1/${r.toString().padStart(2, '0')}`;
+            tableHtml += `<th>${label}</th>`;
+        }
+        tableHtml += '</tr></thead><tbody>';
+
+        for(let d = 1; d <= 31; d++) {
+            let depLabel = `1/${d.toString().padStart(2, '0')}`;
+            tableHtml += `<tr><td class="dep-date-col" onclick="autoFindBest(${d})">${depLabel}</td>`;
+            for(let r = 3; r <= 36; r++) {
+                if (r <= d) {
+                    tableHtml += `<td style="background:#f5f5f5; color:#ddd; cursor:default;">-</td>`;
+                } else {
+                    let price = calculatePrice(d, r);
+                    let cellClass = "price-cell";
+                    if (price <= 7500) cellClass += " low-price";
+                    else if (price >= 9500) cellClass += " expensive-price";
+
+                    tableHtml += `<td class="${cellClass}" id="cell-${d}-${r}" data-price="${price}" onclick="alertDetail(${d},${r},${price})">NT$ ${price.toLocaleString()}</td>`;
+                }
+            }
+            tableHtml += '</tr>';
+        }
+        tableHtml += '</tbody></table>';
+        matrixWrapper.innerHTML = tableHtml;
+    });
+
+    // 點擊出發日自動找 > 5 天最划算回程
+    window.autoFindBest = function(depDay) {
+        document.querySelectorAll('.best-recommend').forEach(el => el.classList.remove('best-recommend'));
+
+        let bestPrice = 999999;
+        let bestReturn = -1;
+
+        for (let r = depDay + 6; r <= 36; r++) {
+            let cell = document.getElementById(`cell-${depDay}-${r}`);
+            if (cell) {
+                let price = parseInt(cell.getAttribute('data-price'));
+                if (price < bestPrice) {
+                    bestPrice = price;
+                    bestReturn = r;
+                }
+            }
+        }
+
+        if (bestReturn !== -1) {
+            let bestCell = document.getElementById(`cell-${depDay}-${bestReturn}`);
+            bestCell.classList.add('best-recommend');
+            bestCell.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'center' });
+            
+            let retLabel = bestReturn > 31 ? `2/${bestReturn-31}` : `1/${bestReturn}`;
+            setTimeout(() => {
+                alert(`🎯 為您找到最划算組合！\n--------------------------\n📅 出發日期：1/${depDay}\n📅 最佳回程：${retLabel}\n⏳ 停留天數：${bestReturn - depDay} 天\n💰 最低票價：NT$ ${bestPrice.toLocaleString()}\n\n此組合符合「停留 > 5 天」且為該出發日之最划算選擇。`);
+            }, 300);
+        } else {
+            alert("該日期出發暫無超過 5 天的回程組合（可能已超出搜尋範圍）。");
+        }
+    };
+
+    // 點擊單一價格的彈窗
+    window.alertDetail = function(d, r, p) {
+        let retL = r > 31 ? `2/${r-31}` : `1/${r}`;
+        alert(`✈️ 航班綜合資訊\n------------------------\n出發日期：1/${d}\n返回日期：${retL}\n停留天數：${r-d} 天\n價格預估：NT$ ${p.toLocaleString()}`);
+    };
+
+
+    // ==========================================
+    // 3. 雪道地圖與儀表板邏輯
     // ==========================================
     const areaData = {
         total: {
-            title: "全區總覽",
-            desc: "涵蓋18座雪場，為日本規模最大、海拔最高的滑雪勝地。擁有豐富的地形變化與頂級雪質。",
+            title: "全區總覽", desc: "涵蓋18座雪場，為日本規模最大、海拔最高的滑雪勝地。擁有豐富的地形變化與頂級雪質。",
             transport: "<strong>🚗 交通方式：</strong> 區域間主要由免費的志賀高原接駁巴士 (Shuttle Bus) 串連，部分區域可直接透過雪道與纜車互通。",
-            elevation: "2,307m",
-            slope: "39.1°",
-            distance: "6,000m",
-            chart: [45, 35, 20],
-            images: [
-                "https://raw.githubusercontent.com/jjsblue/shiga-images/main/%E5%BF%97%E8%B3%80%E9%AB%98%E5%8E%9F%20%E4%B8%AD%E5%A4%AE%E5%8D%80%E5%9F%9F.png"
-            ]
+            elevation: "2,307m", slope: "39.1°", distance: "6,000m", chart: [45, 35, 20],
+            images: ["https://raw.githubusercontent.com/jjsblue/shiga-images/main/%E5%BF%97%E8%B3%80%E9%AB%98%E5%8E%9F%20%E4%B8%AD%E5%A4%AE%E5%8D%80%E5%9F%9F.png"]
         },
         area1: {
-            title: "第一區 (奧志賀、燒額山)",
-            desc: "位於志賀高原最北端。以長距離雪道、絕佳的粉雪與風景聞名。奧志賀更以林間雪道 (Tree Run) 著稱，非常適合中高級滑雪者挑戰。",
+            title: "第一區 (奧志賀、燒額山)", desc: "位於志賀高原最北端。以長距離雪道、絕佳的粉雪與風景聞名。奧志賀更以林間雪道 (Tree Run) 著稱，非常適合中高級滑雪者挑戰。",
             transport: "<strong>🚗 交通方式：</strong> 可透過山頂纜車與雪道一路滑行至中央區；亦可搭乘免費接駁巴士往返蓮池等區域。",
-            elevation: "約 2,000m",
-            slope: "39.1°",
-            distance: "約 3,000m",
-            chart: [30, 40, 30],
-            images: [
-                "https://raw.githubusercontent.com/jjsblue/shiga-images/refs/heads/main/%E5%A5%A7%E5%BF%97%E8%B3%80%E9%AB%98%E5%8E%9F%E3%83%BB%E7%87%92%E9%A1%8D%E5%B1%B1%E5%8D%80%E5%9F%9F.png"
-            ]
+            elevation: "約 2,000m", slope: "39.1°", distance: "約 3,000m", chart: [30, 40, 30],
+            images: ["https://raw.githubusercontent.com/jjsblue/shiga-images/refs/heads/main/%E5%A5%A7%E5%BF%97%E8%B3%80%E9%AB%98%E5%8E%9F%E3%83%BB%E7%87%92%E9%A1%8D%E5%B1%B1%E5%8D%80%E5%9F%9F.png"]
         },
         area2: {
-            title: "第二區 (中央區)",
-            desc: "志賀高原的核心地帶，雪場最密集、路線最複雜，包含一之瀨、高天原、東館山等。設施完善，是最熱鬧的區域。",
+            title: "第二區 (中央區)", desc: "志賀高原的核心地帶，雪場最密集、路線最複雜，包含一之瀨、高天原、東館山等。設施完善，是最熱鬧的區域。",
             transport: "<strong>🚗 交通方式：</strong> 絕佳的滑行樞紐！可直接透過雪道與纜車連通第一區 (北) 與第三區 (門戶)。",
-            elevation: "2,060m",
-            slope: "約 36°",
-            distance: "依路線變換",
-            chart: [40, 40, 20],
+            elevation: "2,060m", slope: "約 36°", distance: "依路線變換", chart: [40, 40, 20],
             images: [
-
                 "https://raw.githubusercontent.com/jjsblue/shiga-images/main/%E4%B8%80%E4%B9%8B%E7%80%A8.png",
                 "https://raw.githubusercontent.com/jjsblue/shiga-images/main/%E9%AB%98%E5%A4%A9%E5%8E%9F.jpg",
                 "https://raw.githubusercontent.com/jjsblue/shiga-images/main/%E6%9D%B1%E9%A4%A8%E5%B1%B1.png"
             ]
         },
         area3: {
-            title: "第三區 (門戶區：丸池、蓮池等)",
-            desc: "志賀高原的玄關口，靠近交通樞紐「山之駅」。雪道寬闊平緩，是初學者與親子家庭的滑雪天堂。",
+            title: "第三區 (門戶區：丸池、蓮池等)", desc: "志賀高原的玄關口，靠近交通樞紐「山之駅」。雪道寬闊平緩，是初學者與親子家庭的滑雪天堂。",
             transport: "<strong>🚗 交通方式：</strong> 從外部搭乘巴士抵達的第一站。可透過雪道輕鬆滑行至中央區。",
-            elevation: "約 1,500m",
-            slope: "約 26°",
-            distance: "中短距離",
-            chart: [60, 30, 10],
-            images: [
-                "https://raw.githubusercontent.com/jjsblue/shiga-images/main/%E4%B8%B8%E6%B1%A0%E8%93%AE%E6%B1%A0.jpg"
-            ]
+            elevation: "約 1,500m", slope: "約 26°", distance: "中短距離", chart: [60, 30, 10],
+            images: ["https://raw.githubusercontent.com/jjsblue/shiga-images/main/%E4%B8%B8%E6%B1%A0%E8%93%AE%E6%B1%A0.jpg"]
         },
         area4: {
-            title: "第四區 (橫手山、熊之湯、涉峠)",
-            desc: "位於最南端，擁有日本海拔最高的滑雪場 (2307m)。能欣賞壯麗的樹冰景觀與雲海，雪質極度乾燥鬆軟。",
+            title: "第四區 (橫手山、熊之湯、涉峠)", desc: "位於最南端，擁有日本海拔最高的滑雪場 (2307m)。能欣賞壯麗的樹冰景觀與雲海，雪質極度乾燥鬆軟。",
             transport: "<strong>⚠️ 交通注意：</strong> 地理位置完全獨立！無法透過雪道滑行至其他區，<strong>必須</strong>依賴免費接駁巴士往返中央區或山之駅。",
-            elevation: "2,307m (最高)",
-            slope: "約 30°",
-            distance: "4,000m",
-            chart: [30, 50, 20],
+            elevation: "2,307m (最高)", slope: "約 30°", distance: "4,000m", chart: [30, 50, 20],
             images: [
                 "https://raw.githubusercontent.com/jjsblue/shiga-images/main/%E6%A9%AB%E6%89%8B%E5%B1%B1%E3%83%BB%E6%B8%8B%E5%B3%A0%E6%BB%91%E9%9B%AA%E5%A0%B4%E5%9C%B0%E5%9C%96.png",
                 "https://raw.githubusercontent.com/jjsblue/shiga-images/main/%E7%86%8A%E4%B9%8B%E6%B9%AF%E6%BB%91%E9%9B%AA%E5%A0%B4%E5%9C%B0%E5%9C%96.png"
@@ -417,7 +534,6 @@
 
     let difficultyChart;
 
-    // 建立圓餅圖
     function createChart(data) {
         const ctx = document.getElementById('difficultyChart').getContext('2d');
         if (difficultyChart) difficultyChart.destroy(); 
@@ -439,11 +555,8 @@
         });
     }
 
-    // 更新儀表板數據與地圖
     function updateDashboard(areaKey) {
         const data = areaData[areaKey];
-        
-        // 更新文字
         document.getElementById('area-title').innerText = data.title;
         document.getElementById('area-desc').innerText = data.desc;
         document.getElementById('area-transport').innerHTML = data.transport;
@@ -451,7 +564,6 @@
         document.getElementById('data-slope').innerText = data.slope;
         document.getElementById('data-distance').innerText = data.distance;
 
-        // 第四區交通警示變色
         const transportBox = document.getElementById('area-transport');
         if(areaKey === 'area4') {
             transportBox.style.backgroundColor = '#f8d7da';
@@ -463,14 +575,11 @@
             transportBox.style.color = 'inherit';
         }
 
-        // 更新圖表
         createChart(data.chart);
 
-        // 更新下方的雪道地圖圖片區
         document.getElementById('gallery-title').innerText = data.title;
         const galleryContainer = document.getElementById('gallery-container');
-        galleryContainer.innerHTML = ''; // 清空舊圖
-        
+        galleryContainer.innerHTML = ''; 
         data.images.forEach(imgUrl => {
             const imgElement = document.createElement('img');
             imgElement.src = imgUrl;
@@ -479,28 +588,23 @@
         });
     }
 
-    // 設定地圖按鈕點擊事件
     document.querySelectorAll('.map-node').forEach(node => {
         node.addEventListener('click', function() {
-            // 移除所有 active
             document.querySelectorAll('.map-node').forEach(n => n.classList.remove('active'));
-            // 加上自己 active
             this.classList.add('active');
-            
-            const target = this.getAttribute('data-target');
-            updateDashboard(target);
-            
-            // 手機版點擊後，自動捲動到資訊區
+            updateDashboard(this.getAttribute('data-target'));
             if(window.innerWidth <= 768) {
                 document.getElementById('area-title').scrollIntoView({ behavior: 'smooth' });
             }
         });
     });
 
-    // 初始載入中央區 (第二區)
-    window.onload = () => {
-        updateDashboard('area2');
-    };
+    // 初始載入雪道地圖 (第二區)
+    window.addEventListener('load', () => {
+        if(document.getElementById('area-title')) {
+            updateDashboard('area2');
+        }
+    });
 </script>
 
 </body>
