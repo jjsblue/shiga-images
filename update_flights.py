@@ -6,6 +6,10 @@ import time
 # 從 GitHub Secrets 中讀取你的 SerpApi 金鑰
 API_KEY = os.environ.get('SERPAPI_KEY')
 
+if not API_KEY:
+    print("❌ 錯誤：找不到 API_KEY！請檢查 GitHub Secrets 是否正確命名為 SERPAPI_KEY")
+    exit(1)
+
 # 1. 鎖定「精華日期」：4個出發日 x 4個回程日 = 最多 16 次請求
 outbound_dates = ["2027-01-08", "2027-01-10", "2027-01-15", "2027-01-22"]
 return_dates = ["2027-01-12", "2027-01-14", "2027-01-19", "2027-01-26"]
@@ -32,7 +36,13 @@ for out_date in outbound_dates:
         }
         
         try:
-            response = requests.get("https://serpapi.com/search", params=params)
+            # 這裡加上了 .json !
+            response = requests.get("https://serpapi.com/search.json", params=params)
+            
+            if response.status_code != 200:
+                print(f"抓取 {out_date} 到 {ret_date} 失敗，API 回傳錯誤: {response.text}")
+                continue
+
             data = response.json()
             
             # 優先抓取「最佳航班 (best_flights)」，若無則抓取「其他航班 (other_flights)」
@@ -54,9 +64,9 @@ for out_date in outbound_dates:
                 print(f"找不到 {out_date} 到 {ret_date} 的航班價格")
                 
         except Exception as e:
-            print(f"抓取 {out_date} 到 {ret_date} 發生錯誤: {e}")
+            print(f"程式執行 {out_date} 到 {ret_date} 發生異常: {e}")
             
-        # 暫停 1.5 秒，避免瞬間發出太多請求被 API 伺服器阻擋
+        # 暫停 1.5 秒，避免瞬間發出太多請求被擋
         time.sleep(1.5)
 
 # 2. 將抓到的結果寫入 data.json
