@@ -249,13 +249,13 @@
     <div id="flights" class="tab-content active">
         <div class="info-card" style="margin-bottom: 20px; border-left: 5px solid #fb8c00; background-color: #fff8e1;">
             <h3 style="margin-top: 0; color: #e65100;">💡 智慧選票功能已啟用</h3>
-            <p style="margin-bottom: 0;"><strong>使用方式：</strong> 點擊下方表格最左側的「綠色出發日期」，系統將自動為您找出<strong>停留超過 5 天</strong>且<strong>最便宜</strong>的回程組合！</p>
+            <p style="margin-bottom: 0;"><strong>使用方式：</strong> 點擊下方表格最左側的「綠色出發日期」，系統將自動為您找出<strong>停留超過 5 天</strong>且<strong>最便宜</strong>的回程組合！<br>點擊<strong>價格欄位</strong>自動計算天數，再點擊<strong>確認</strong>可連接Google Flight實時價格</p>
         </div>
 
         <div class="info-card">
             <h2 style="margin-top:0;">📅 台北 - 東京 航班來回總價</h2>
-            <p style="font-size: 0.9em; color: #666; margin-bottom: 15px;">\點擊價格欄位可自動總結選取天數/
-          \價格波動大，購買前請再確認/</p>
+            <p style="font-size: 0.9em; color: #666; margin-bottom: 15px;">\每周日0時自動更新價格/
+         </p>
             <div id="matrix-wrapper" style="overflow: auto; max-height: 500px; width: 100%; border-radius: 8px; box-shadow: inset 0 0 10px rgba(0,0,0,0.05);">
                 </div>
         </div>
@@ -388,106 +388,141 @@
         document.getElementById(tabId).classList.add('active');
         event.currentTarget.classList.add('active');
     }
+// ==========================================
+    // 2. 機票矩陣生成與智慧搜尋 (先顯示資訊，再確認跳轉)
+    // ==========================================
+    document.addEventListener("DOMContentLoaded", function() {
+        const matrixWrapper = document.getElementById('matrix-wrapper');
+        if(!matrixWrapper) return;
+        
+        // 讀取真實資料 (由 GitHub Actions 產生)
+        fetch('data.json')
+            .then(response => {
+                if (!response.ok) return {}; 
+                return response.json();
+            })
+            .then(realPrices => {
+                buildMatrix(realPrices);
+            })
+            .catch(error => {
+                buildMatrix({}); 
+            });
 
-    // ==========================================
-    // 2. 機票矩陣生成與智慧搜尋
-    // ==========================================
-    document.addEventListener("DOMContentLoaded", function() {
-        const matrixWrapper = document.getElementById('matrix-wrapper');
-        if(!matrixWrapper) return;
+        // 演算法補全：利用趨勢估算合理價格
+        function calculatePrice(d, r) {
+            let base = 7600;
+            if (d <= 4) base += 2200; 
+            if (d >= 24) base += 2800; 
+            if (d % 7 >= 5 || d % 7 == 0) base += 900; 
+            
+            let duration = r - d;
+            if (duration > 7) base -= 300; 
+            if (duration < 3) base += 500; 
+
+            let drift = (Math.sin(d * r) * 150); 
+            return Math.floor((base + drift) / 10) * 10;
+        }
+
+        function buildMatrix(priceData) {
+            let tableHtml = '<table class="flight-matrix" id="mainMatrix">';
+            tableHtml += '<thead><tr><th class="sticky-corner">點日期找最優 ↓</th>';
+            for(let r = 3; r <= 36; r++) { 
+                let label = r > 31 ? `2/${(r-31).toString().padStart(2, '0')}` : `1/${r.toString().padStart(2, '0')}`;
+                tableHtml += `<th>${label}</th>`;
+            }
+            tableHtml += '</tr></thead><tbody>';
+
+            for(let d = 1; d <= 31; d++) {
+                let depLabel = `1/${d.toString().padStart(2, '0')}`;
+                tableHtml += `<tr><td class="dep-date-col" onclick="autoFindBest(${d})">${depLabel}</td>`;
+                
+                for(let r = 3; r <= 36; r++) {
+                    let retLabel = r > 31 ? `2/${(r-31).toString().padStart(2, '0')}` : `1/${r.toString().padStart(2, '0')}`;
+                    let key = `${depLabel}-${retLabel}`;
+                    let duration = r - d;
+                    
+                    if (r <= d) {
+                        tableHtml += `<td style="background:#f5f5f5; color:#ddd; cursor:default;">-</td>`;
+                    } else {
+                        let isRealData = priceData.hasOwnProperty(key);
+                        let price = isRealData ? priceData[key] : calculatePrice(d, r);
+                        
+                        let cellClass = "price-cell";
+                        if (price <= 7500) cellClass += " low-price";
+                        else if (price >= 9500) cellClass += " expensive-price";
+
+                        let style = isRealData ? "font-weight:900; color:#d84315;" : "";
+                        let prefix = isRealData ? "★ " : ""; 
+
+                        // 將原本的 openGoogleFlights 改為 checkAndOpen 函式
+                        tableHtml += `<td class="${cellClass}" id="cell-${d}-${r}" style="${style}" 
+                                      data-price="${price}" data-duration="${duration}" 
+                                      onclick="checkAndOpen(${d}, ${r}, ${price})">
+                                      ${prefix}NT$ ${price.toLocaleString()}
+                                      </td>`;
+                    }
+                }
+                tableHtml += '</tr>';
+            }
+            tableHtml += '</tbody></table>';
+            matrixWrapper.innerHTML = tableHtml;
+        }
+    });
+
+    // 智慧選票功能
+    window.autoFindBest = function(depDay) {
+        document.querySelectorAll('.best-recommend').forEach(el => el.classList.remove('best-recommend'));
+        let bestPrice = 999999;
+        let bestReturn = -1;
+
+        for (let r = depDay + 6; r <= 36; r++) {
+            let cell = document.getElementById(`cell-${depDay}-${r}`);
+            if (cell) {
+                let price = parseInt(cell.getAttribute('data-price'));
+                if (price < bestPrice) {
+                    bestPrice = price;
+                    bestReturn = r;
+                }
+            }
+        }
+
+        if (bestReturn !== -1) {
+            let bestCell = document.getElementById(`cell-${depDay}-${bestReturn}`);
+            bestCell.classList.add('best-recommend');
+            bestCell.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'center' });
+            
+            let retLabel = bestReturn > 31 ? `2/${bestReturn-31}` : `1/${bestReturn}`;
+            setTimeout(() => {
+                alert(`🎯 為您找到最划算組合！\n--------------------------\n📅 出發：1/${depDay}\n📅 回程：${retLabel}\n⏳ 停留：${bestReturn - depDay} 天\n💰 最低票價：NT$ ${bestPrice.toLocaleString()}\n\n👉 點擊該格子即可跳轉至 Google Flights 查看即時真實票價！`);
+            }, 300);
+        } else {
+            alert("該日期出發暫無超過 5 天的回程組合（可能已超出搜尋範圍）。");
+        }
+    };
+
+    // 【重點修改】點擊單一價格，先顯示資訊，再詢問是否開啟 Google Flights
+    window.checkAndOpen = function(d, r, p) {
+        // 1. 計算回程顯示日期與停留天數
+        let retL = r > 31 ? `2/${r-31}` : `1/${r}`;
+        let duration = r - d;
         
-        // PDF 精準資料點
-        const pdfPrices = {
-            "1/08-1/11": 8114, "1/10-1/12": 7039, "1/12-1/14": 7205,
-            "1/17-1/21": 7814, "1/22-1/24": 8005, "1/26-1/30": 9482,
-            "1/26-1/31": 9482
-        };
+        // 2. 組合提示訊息
+        let msg = `✈️ 航班綜合資訊\n------------------------\n出發日期：1/${d}\n返回日期：${retL}\n停留天數：${duration} 天\n價格預估：NT$ ${p.toLocaleString()}\n\n👉 是否要開啟 Google Flights 查看即時航班與真實票價？`;
 
-        // 票價模擬運算
-        function calculatePrice(d, r) {
-            const key = `1/${d.toString().padStart(2, '0')}-1/${r.toString().padStart(2, '0')}`;
-            if (pdfPrices[key]) return pdfPrices[key];
-
-            let base = 7600;
-            if (d <= 4) base += 2200; 
-            if (d >= 24) base += 2800; 
-            if (d % 7 >= 5 || d % 7 == 0) base += 900; 
-            
-            let duration = r - d;
-            if (duration > 7) base -= 300; 
-            if (duration < 3) base += 500; 
-
-            let drift = (Math.sin(d * r) * 150); 
-            return Math.floor((base + drift) / 10) * 10;
-        }
-
-        // 繪製全月矩陣
-        let tableHtml = '<table class="flight-matrix" id="mainMatrix">';
-        tableHtml += '<thead><tr><th class="sticky-corner">點日期找最優 ↓</th>';
-        for(let r = 3; r <= 36; r++) { 
-            let label = r > 31 ? `2/${(r-31).toString().padStart(2, '0')}` : `1/${r.toString().padStart(2, '0')}`;
-            tableHtml += `<th>${label}</th>`;
-        }
-        tableHtml += '</tr></thead><tbody>';
-
-        for(let d = 1; d <= 31; d++) {
-            let depLabel = `1/${d.toString().padStart(2, '0')}`;
-            tableHtml += `<tr><td class="dep-date-col" onclick="autoFindBest(${d})">${depLabel}</td>`;
-            for(let r = 3; r <= 36; r++) {
-                if (r <= d) {
-                    tableHtml += `<td style="background:#f5f5f5; color:#ddd; cursor:default;">-</td>`;
-                } else {
-                    let price = calculatePrice(d, r);
-                    let cellClass = "price-cell";
-                    if (price <= 7500) cellClass += " low-price";
-                    else if (price >= 9500) cellClass += " expensive-price";
-
-                    tableHtml += `<td class="${cellClass}" id="cell-${d}-${r}" data-price="${price}" onclick="alertDetail(${d},${r},${price})">NT$ ${price.toLocaleString()}</td>`;
-                }
-            }
-            tableHtml += '</tr>';
-        }
-        tableHtml += '</tbody></table>';
-        matrixWrapper.innerHTML = tableHtml;
-    });
-
-    // 點擊出發日自動找 > 5 天最划算回程
-    window.autoFindBest = function(depDay) {
-        document.querySelectorAll('.best-recommend').forEach(el => el.classList.remove('best-recommend'));
-
-        let bestPrice = 999999;
-        let bestReturn = -1;
-
-        for (let r = depDay + 6; r <= 36; r++) {
-            let cell = document.getElementById(`cell-${depDay}-${r}`);
-            if (cell) {
-                let price = parseInt(cell.getAttribute('data-price'));
-                if (price < bestPrice) {
-                    bestPrice = price;
-                    bestReturn = r;
-                }
-            }
-        }
-
-        if (bestReturn !== -1) {
-            let bestCell = document.getElementById(`cell-${depDay}-${bestReturn}`);
-            bestCell.classList.add('best-recommend');
-            bestCell.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'center' });
-            
-            let retLabel = bestReturn > 31 ? `2/${bestReturn-31}` : `1/${bestReturn}`;
-            setTimeout(() => {
-                alert(`🎯 為您找到最划算組合！\n--------------------------\n📅 出發日期：1/${depDay}\n📅 最佳回程：${retLabel}\n⏳ 停留天數：${bestReturn - depDay} 天\n💰 最低票價：NT$ ${bestPrice.toLocaleString()}\n\n此組合符合「停留 > 5 天」且為該出發日之最划算選擇。`);
-            }, 300);
-        } else {
-            alert("該日期出發暫無超過 5 天的回程組合（可能已超出搜尋範圍）。");
-        }
-    };
-
-    // 點擊單一價格的彈窗
-    window.alertDetail = function(d, r, p) {
-        let retL = r > 31 ? `2/${r-31}` : `1/${r}`;
-        alert(`✈️ 航班綜合資訊\n------------------------\n出發日期：1/${d}\n返回日期：${retL}\n停留天數：${r-d} 天\n價格預估：NT$ ${p.toLocaleString()}`);
-    };
+        // 3. 使用 confirm() 詢問使用者，如果按下「確定」才會執行跳轉
+        if (confirm(msg)) {
+            let outM = "01", retM = r > 31 ? "02" : "01";
+            let outD = d.toString().padStart(2, '0');
+            let retD = r > 31 ? (r - 31).toString().padStart(2, '0') : r.toString().padStart(2, '0');
+            
+            let outDateStr = `2027-${outM}-${outD}`;
+            let retDateStr = `2027-${retM}-${retD}`;
+            
+            // 生成 Google Flights 網址並跳轉 (台北出發 到 東京所有機場)
+            let gfUrl = `https://www.google.com/travel/flights?q=Flights%20to%20TYO%20from%20TPE%20on%20${outDateStr}%20through%20${retDateStr}`;
+            window.open(gfUrl, '_blank');
+        }
+    };
 
 
     // ==========================================
