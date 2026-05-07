@@ -34,11 +34,13 @@ jobs:
           SERPAPI_KEY: ${{ secrets.SERPAPI_KEY }}
         run: python update_flights.py
 
-      # 5. 如果 data.json 有變動，就把新檔案 Commit 並推播回你的儲存庫
+     # 5. 提交並推播變更
       - name: Commit and push changes
         run: |
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "GitHub Action Bot"
           git add data.json
-          # 檢查是否有檔案變動，有的話才 commit
-          git diff --quiet && git diff --staged --quiet || (git commit -m "🤖 Auto-update flight prices" && git push)
+          git diff --quiet && git diff --staged --quiet || git commit -m "🤖 Auto-update flight prices"
+          # 關鍵這行：把遠端最新的變動先拉下來融合，再推播上去
+          git pull --rebase origin main
+          git push origin main
