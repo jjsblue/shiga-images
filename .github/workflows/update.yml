@@ -39,19 +39,20 @@ jobs:
           SERPAPI_KEY: ${{ secrets.SERPAPI_KEY }}
         run: python update_flights.py
 
-      # Commit & Push
+            # 5. Commit & Push
       - name: Commit and push changes
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
+          # 先同步遠端
+          git pull --rebase origin main
+
+          # 加入變更
           git add data.json
 
           # 沒變更就結束
           git diff --cached --quiet && exit 0
-
-          # 先同步遠端最新
-          git pull --rebase origin main
 
           # commit
           git commit -m "🤖 Auto-update flight prices"
