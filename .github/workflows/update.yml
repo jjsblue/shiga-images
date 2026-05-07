@@ -1,0 +1,42 @@
+name: 每週自動更新機票價格
+
+on:
+  schedule:
+    # 每個星期日 00:00 UTC (台灣時間早上 8 點) 執行
+    - cron: '0 0 * * 0'
+  # 加入 workflow_dispatch 讓你可以隨時手動點擊「Run workflow」按鈕測試
+  workflow_dispatch: 
+
+jobs:
+  update-data:
+    runs-on: ubuntu-latest
+    
+    steps:
+      # 1. 檢索你的程式碼
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      # 2. 安裝 Python 環境
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+
+      # 3. 安裝抓取資料需要的套件 (requests)
+      - name: Install dependencies
+        run: pip install requests
+
+      # 4. 執行你剛剛寫的 Python 腳本 (帶入隱藏的金鑰)
+      - name: Run flight scraper
+        env:
+          SERPAPI_KEY: ${{ secrets.SERPAPI_KEY }}
+        run: python update_flights.py
+
+      # 5. 如果 data.json 有變動，就把新檔案 Commit 並推播回你的儲存庫
+      - name: Commit and push changes
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "GitHub Action Bot"
+          git add data.json
+          # 檢查是否有檔案變動，有的話才 commit
+          git diff --quiet && git diff --staged --quiet || (git commit -m "🤖 Auto-update flight prices" && git push)
