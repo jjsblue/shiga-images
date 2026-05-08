@@ -249,12 +249,12 @@
     <div id="flights" class="tab-content active">
         <div class="info-card" style="margin-bottom: 20px; border-left: 5px solid #fb8c00; background-color: #fff8e1;">
             <h3 style="margin-top: 0; color: #e65100;">💡 智慧選票功能已啟用</h3>
-            <p style="margin-bottom: 0;"><strong>使用方式：</strong> 點擊下方表格最左側的「綠色出發日期」，系統將自動為您找出<strong>停留超過 5 天</strong>且<strong>最便宜</strong>的回程組合！<br>點擊<strong>價格欄位</strong>自動計算天數，再點擊<strong>確認</strong>可連接Google Flight實時價格</p>
+            <p style="margin-bottom: 0;"><strong>使用方式：</strong> 點擊下方表格「綠色出發日期」，系統將自動為您找出<strong>停留超過 5 天</strong>且<strong>最便宜</strong>的回程組合！<br>點擊<strong>價格欄位</strong>自動計算天數，再點擊<strong>確認</strong>可連接Google Flight實時價格</p>
         </div>
 
         <div class="info-card">
             <h2 style="margin-top:0;">📅 台北 - 東京 航班來回總價</h2>
-            <p style="font-size: 0.9em; color: #666; margin-bottom: 15px;">\每周日0時自動更新價格/
+            <p style="font-size: 0.9em; color: #666; margin-bottom: 15px;">\每周日0時自動參考時價更新價格，表格價格非即時/
          </p>
             <div id="matrix-wrapper" style="overflow: auto; max-height: 500px; width: 100%; border-radius: 8px; box-shadow: inset 0 0 10px rgba(0,0,0,0.05);">
                 </div>
@@ -333,6 +333,7 @@
     <div id="hotels" class="tab-content">
         <div class="info-card">
             <h2>🏨 推薦住宿區域</h2>
+          <span style="font-size: 0.85em; color: #666;">（註：等訂好住宿再更新成住宿資料）</span>
             <div class="data-grid">
                 <div class="data-card" style="text-align:left">
                     <strong style="color:var(--secondary-color)">燒額山區</strong><br><br>
@@ -353,12 +354,15 @@
     <div id="tickets" class="tab-content">
         <div class="info-card">
             <h2>🎫 志賀高原全山共通卷 (2026 參考價)</h2>
-            <p>💡 <strong>省錢秘訣：</strong> 使用 Web 線上預購通常可享 1,000 日圓折扣，持共通券可滑遍 18 座雪場！</p>
+            <p>💡 <strong>省錢秘訣：</strong> 使用 Web 線上預購通常可享 1,000 日圓折扣，持共通券可滑遍 18 座雪場！</p><span style="font-size: 0.85em; color: #666;">（註：全山券通常不含夜滑，志賀開放夜滑僅熊之湯滑雪場&燒額山滑雪場）</span>
             <table>
                 <tr><th>天數</th><th>窗口原價</th><th>Web 預購價</th></tr>
                 <tr><td>1日券</td><td>9,000 JPY</td><td class="price-tag">8,000 JPY</td></tr>
                 <tr><td>2日券</td><td>17,500 JPY</td><td class="price-tag">15,500 JPY</td></tr>
                 <tr><td>3日券</td><td>26,000 JPY</td><td class="price-tag">23,000 JPY</td></tr>
+<tr><td>4日券</td><td>34,500 JPY</td><td class="price-tag">30,500 JPY</td></tr>
+<tr><td>5日券</td><td>43,000 JPY</td><td class="price-tag">38,000 JPY</td></tr>
+<tr><td>6日券</td><td>51,500 JPY</td><td class="price-tag">45,500 JPY</td></tr>
             </table>
         </div>
     </div>
@@ -366,9 +370,44 @@
     <div id="transport" class="tab-content">
         <div class="info-card">
             <h2>🚌 聯外與區內交通</h2>
+<div style="background:#f2e8fd; padding:15px; border-radius:8px; margin-bottom:15px; border-left: 5px solid #7c34db;">
+                <strong>Snowliner（東京成田/東京羽田 ↔ 長野站）：</strong> 搭乘「Snowliner」前往志賀高原，車程約 5.5-6 小時，單程費用約為 14,000 至 18,000 日圓，免費攜帶行李箱*1+雪板行李袋*1，額外行李價格每件 1,500 日圓。</br> <span style="font-size: 0.85em; color: #666;">（註：班次偏少，具體要在雪季開始前才會公告）</span>
+  </div>
+
+<div style="background:#e8f4fd; padding:15px; border-radius:8px; margin-bottom:15px; border-left: 5px solid #3498db;">
+                <strong>北陸新幹線（東京/上野 ↔ 長野站）：</strong> 搭乘「北陸新幹線」前往長野站，車程約 90-110 分鐘，單程費用約為 8,000 至 9,000 日圓。
+  </div>
             <div style="background:#e8f4fd; padding:15px; border-radius:8px; margin-bottom:15px; border-left: 5px solid #3498db;">
-                <strong>長野站 ➔ 志賀高原：</strong> 搭乘「長電雪猴/志賀高原特快巴士」，車程約 70-90 分鐘，單程票價約 2,500~3,000 JPY。於長野站東口上車。
-            </div>
+    <div style="margin-bottom: 10px;">
+        <strong>長野站 ➔ 志賀高原：</strong> 搭乘「長電雪猴/志賀高原特快巴士」，車程約 70-90 分鐘，單程票價約 2,500~3,000 JPY。於長野站東口上車。
+    </div>
+    
+    <hr style="border: 0; height: 1px; background: #b9d7f0; margin: 15px 0;">
+    
+    <div style="text-align: center; line-height: 1.8;">
+        <strong style="color: #2980b9; font-size: 1.1em;">【去程】長野站東口 ➔ 志賀高原山之站</strong><br>
+        08:15 發車 ➔ 09:35 抵達 </br><span style="font-size: 0.85em; color: #666;">（註：限週末/假日行駛，適用 2025/12/20~2026/3/21 每週六，及 2/11、3/20）</span><br>
+        09:10 發車 ➔ 10:32 抵達<br>
+        10:40 發車 ➔ 12:07 抵達<br>
+        11:15 發車 ➔ 12:42 抵達<br>
+        13:10 發車 ➔ 14:37 抵達<br>
+        14:30 發車 ➔ 15:57 抵達<br>
+        17:05 發車 ➔ 18:32 抵達<br>
+        21:00 發車 ➔ 22:11 抵達 </br><span style="font-size: 0.85em; color: #666;">（註：夜間預約制「Weekend 志賀」，限 2026/1/9~3/13 每週五，及 3/19 行駛）</span><br>
+        
+        <br>
+        
+        <strong style="color: #2980b9; font-size: 1.1em;">【回程】志賀高原山之站 ➔ 長野站東口</strong><br>
+        08:25 發車 ➔ 09:45 抵達<br>
+        10:30 發車 ➔ 12:15 抵達<br>
+        13:35 發車 ➔ 15:20 抵達<br>
+        14:35 發車 ➔ 16:20 抵達<br>
+        15:35 發車 ➔ 17:20 抵達<br>
+        16:05 發車 ➔ 17:50 抵達<br>
+        17:00 發車 ➔ 18:45 抵達<br>
+        18:20 發車 ➔ 20:05 抵達<br>
+    </div>
+</div>
             <div style="background:#fef9e7; padding:15px; border-radius:8px; border-left: 5px solid #f1c40f;">
                 <strong>區內移動：</strong> 持有有效雪票者可「免費」搭乘志賀高原區內接駁巴士 (Shuttle Bus)。<br><br>
                 ⚠️ <strong>注意：</strong> 前往橫手山/熊之湯 (第四區) 必須依賴巴士，且班次有限，請務必留意末班車時間以免回不了飯店！
@@ -408,54 +447,123 @@
                 buildMatrix({}); 
             });
 
-        // 演算法補全：利用趨勢估算合理價格
-        function calculatePrice(d, r) {
-            let base = 7600;
-            if (d <= 4) base += 2200; 
-            if (d >= 24) base += 2800; 
-            if (d % 7 >= 5 || d % 7 == 0) base += 900; 
-            
-            let duration = r - d;
-            if (duration > 7) base -= 300; 
-            if (duration < 3) base += 500; 
-
-            let drift = (Math.sin(d * r) * 150); 
-            return Math.floor((base + drift) / 10) * 10;
-        }
-
         function buildMatrix(priceData) {
-            let tableHtml = '<table class="flight-matrix" id="mainMatrix">';
-            // 標題稍微縮短
-            tableHtml += '<thead><tr><th class="sticky-corner">出發 ↓ </th>';
-            for(let r = 3; r <= 36; r++) { 
-                let label = r > 31 ? `2/${(r-31).toString().padStart(2, '0')}` : `1/${r.toString().padStart(2, '0')}`;
-                tableHtml += `<th>${label}</th>`;
+            // ==========================================
+            // 1. 動態分析 API 真實數據，提取智慧錨點
+            // ==========================================
+            let realValues = Object.values(priceData).filter(p => typeof p === 'number');
+            let minRealPrice = 6900;  // 預設安全底價
+            let maxRealPrice = 11000; // 預設安全天花板
+
+            // 如果 API 有抓到真實數據，就更新天花板與地板
+            if (realValues.length > 0) {
+                minRealPrice = Math.min(...realValues);
+                maxRealPrice = Math.max(...realValues);
             }
+
+            // 動態底價：以真實最低價為基準，扣除些微擾動值，確保推算出的低價能與真實相符
+            let dynamicBase = minRealPrice > 200 ? minRealPrice - 150 : 6900;
+            
+            // 動態漲幅倍率：計算真實價格的「總跨度」，對比預期差價(約3800)來放大或縮小波動
+            let priceDiff = maxRealPrice - minRealPrice;
+            let scaleMultiplier = priceDiff > 0 ? (priceDiff / 3800) : 1; 
+
+            // ==========================================
+            // 2. 演算法補全：以動態錨點為基礎進行推算
+            // ==========================================
+            function calculateDynamicPrice(d, r) {
+                let base = dynamicBase;
+
+                // A. 出發日期的「季節性/檔期」波動 (乘上倍率，跟著真實高低價縮放)
+                if (d <= 5) base += 800 * scaleMultiplier;  
+                else if (d >= 6 && d <= 14) base += 0;    
+                else if (d >= 15 && d <= 20) base += 1100 * scaleMultiplier; 
+                else if (d >= 21) base += 2300 * scaleMultiplier; 
+
+                // B. 出發日「星期幾」效應
+                let depDay = d % 7;
+                if (depDay === 2) base += 1000 * scaleMultiplier; 
+                else if (depDay === 1 || depDay === 3) base += 300 * scaleMultiplier;
+
+                // C. 回程日「星期幾」效應
+                let retDay = r % 7;
+                if (retDay === 3 || retDay === 4) base += 800 * scaleMultiplier;  
+                else if (retDay === 1 || retDay === 2) base += 400 * scaleMultiplier;
+
+                // D. 天數懲罰 (過短或過長)
+                let duration = r - d;
+                if (duration < 5) base += (5 - duration) * 300 * scaleMultiplier;  
+                else if (duration > 10) base += (duration - 10) * 150 * scaleMultiplier; 
+
+                // E. 隨機擾動與尾數美化
+                let drift = Math.floor(Math.sin(d * 7 + r * 3) * 80 * scaleMultiplier);
+                let finalPrice = base + drift;
+
+                finalPrice = Math.floor(finalPrice / 10) * 10;
+                let magicTail = (d + r) % 3;
+                if (magicTail === 0) finalPrice += 4;
+                else if (magicTail === 1) finalPrice += 6;
+                else finalPrice += 9;
+
+                return finalPrice;
+            }
+
+            // // ==========================================
+            // 3. 繪製矩陣表格 (去程在上、回程在右)
+            // ==========================================
+            let tableHtml = '<table class="flight-matrix" id="mainMatrix">';
+            
+            // 準備星期推算工具
+            const weekDays = ['日', '一', '二', '三', '四', '五', '六'];
+            function getLabelWithWeek(dayIndex) {
+                let m = dayIndex > 31 ? 2 : 1; 
+                let d = dayIndex > 31 ? dayIndex - 31 : dayIndex;
+                let dateObj = new Date(2027, m - 1, d); 
+                let wd = weekDays[dateObj.getDay()];
+                return `${m}/${d.toString().padStart(2, '0')}(${wd})`;
+            }
+
+            // --- 繪製表頭 (Top Row)：去程日期 (1 ~ 31) ---
+            tableHtml += '<thead><tr>';
+            for(let d = 1; d <= 31; d++) { 
+                // 綠色底色，並鎖定在頂部
+                tableHtml += `<th class="dep-date-header" onclick="autoFindBest(${d})" 
+                                  style="background-color: #4ab07d; color: white; cursor: pointer; position: sticky; top: 0; z-index: 2;">
+                                  ${getLabelWithWeek(d)}
+                              </th>`;
+            }
+            // 表頭最右上角的角落標籤 (深色底色，同時鎖定頂部與右側)
+            tableHtml += `<th class="sticky-corner" 
+                              style="background-color: #474747; color: white; position: sticky; top: 0; right: 0; z-index: 10; min-width: 80px;">
+                              回程 &darr;
+                          </th>`;
             tableHtml += '</tr></thead><tbody>';
 
-            for(let d = 1; d <= 31; d++) {
-                let depLabel = `1/${d.toString().padStart(2, '0')}`;
-                tableHtml += `<tr><td class="dep-date-col" onclick="autoFindBest(${d})">${depLabel}</td>`;
+            // --- 繪製表格內容 (Rows)：回程日期 (3 ~ 36) ---
+            for(let r = 3; r <= 36; r++) {
+                tableHtml += '<tr>';
+                let retKey = r > 31 ? `2/${(r-31).toString().padStart(2, '0')}` : `1/${r.toString().padStart(2, '0')}`;
                 
-                for(let r = 3; r <= 36; r++) {
-                    let retLabel = r > 31 ? `2/${(r-31).toString().padStart(2, '0')}` : `1/${r.toString().padStart(2, '0')}`;
-                    let key = `${depLabel}-${retLabel}`;
+                // 內層迴圈：對應每天的出發日期
+                for(let d = 1; d <= 31; d++) {
+                    let depKey = `1/${d.toString().padStart(2, '0')}`;
+                    let key = `${depKey}-${retKey}`; 
                     let duration = r - d;
                     
                     if (r <= d) {
+                        // 邏輯不合理 (回程日 <= 出發日) 的格子反灰
                         tableHtml += `<td style="background:#f5f5f5; color:#ddd; cursor:default; text-align:center;">-</td>`;
                     } else {
                         let isRealData = priceData.hasOwnProperty(key);
-                        let price = isRealData ? priceData[key] : calculatePrice(d, r);
+                        let price = isRealData ? priceData[key] : calculateDynamicPrice(d, r);
                         
                         let cellClass = "price-cell";
-                        if (price <= 7500) cellClass += " low-price";
-                        else if (price >= 9500) cellClass += " expensive-price";
+                        if (price <= minRealPrice + 500) cellClass += " low-price";
+                        else if (price >= maxRealPrice - 800) cellClass += " expensive-price";
 
                         let style = isRealData ? "font-weight:900; color:#d84315;" : "";
                         let prefix = isRealData ? "★" : ""; 
 
-                        // 【修改處】將 "NT$ " 改為 "$" 讓長度更短，且移除多餘空格
                         tableHtml += `<td class="${cellClass}" id="cell-${d}-${r}" style="${style}" 
                                       data-price="${price}" data-duration="${duration}" 
                                       onclick="checkAndOpen(${d}, ${r}, ${price})">
@@ -463,11 +571,19 @@
                                       </td>`;
                     }
                 }
+                
+                // --- 每一列的【最右側】加上回程日期的標籤 ---
+                // 深色底色，並使用 position: sticky 確保向右滑動時標籤不會消失
+                tableHtml += `<td class="ret-date-col" 
+                                  style="background-color: #474747; color: white; font-weight: bold; text-align: center; position: sticky; right: 0; z-index: 1; border-left: 2px solid #222;">
+                                  ${getLabelWithWeek(r)}
+                              </td>`;
+                
                 tableHtml += '</tr>';
             }
             tableHtml += '</tbody></table>';
             matrixWrapper.innerHTML = tableHtml;
-    }
+        }
     });
 
     // 智慧選票功能
