@@ -447,58 +447,75 @@
                 buildMatrix({}); 
             });
 
-        function buildMatrix(priceData) {
+function buildMatrix(priceData) {
             // ==========================================
-            // 1. 動態分析 API 真實數據，提取智慧錨點
+            // 1. 動態分析新錨點區間的真實數據 (去1/11~1/17, 回1/16~1/24)
             // ==========================================
             let realValues = Object.values(priceData).filter(p => typeof p === 'number');
-            let minRealPrice = 6900;  // 預設安全底價
-            let maxRealPrice = 11000; // 預設安全天花板
+            let minRealPrice = 7044;  // 預設參考底價
+            let maxRealPrice = 10000; // 預設參考天花板
 
-            // 如果 API 有抓到真實數據，就更新天花板與地板
+            // 如果 Python API 有抓到這 16 個錨點的真實數據，就動態更新天花板與地板
             if (realValues.length > 0) {
                 minRealPrice = Math.min(...realValues);
                 maxRealPrice = Math.max(...realValues);
             }
 
-            // 動態底價：以真實最低價為基準，扣除些微擾動值，確保推算出的低價能與真實相符
-            let dynamicBase = minRealPrice > 200 ? minRealPrice - 150 : 6900;
+            // 動態底價：以真實最低價為基礎基準
+            let dynamicBase = minRealPrice > 200 ? minRealPrice - 100 : 6940;
             
-            // 動態漲幅倍率：計算真實價格的「總跨度」，對比預期差價(約3800)來放大或縮小波動
+            // 動態漲幅倍率：根據新錨點區間的真實差價動態縮放波動幅度
             let priceDiff = maxRealPrice - minRealPrice;
-            let scaleMultiplier = priceDiff > 0 ? (priceDiff / 3800) : 1; 
+            let scaleMultiplier = priceDiff > 0 ? (priceDiff / 3000) : 1; 
 
             // ==========================================
-            // 2. 演算法補全：以動態錨點為基礎進行推算
+            // 2. 智慧預測演算法：以真實價格錨點為基準做前後價格推導
             // ==========================================
             function calculateDynamicPrice(d, r) {
                 let base = dynamicBase;
 
-                // A. 出發日期的「季節性/檔期」波動 (乘上倍率，跟著真實高低價縮放)
-                if (d <= 5) base += 800 * scaleMultiplier;  
-                else if (d >= 6 && d <= 14) base += 0;    
-                else if (d >= 15 && d <= 20) base += 1100 * scaleMultiplier; 
-                else if (d >= 21) base += 2300 * scaleMultiplier; 
+                // A. 去程日期的「微幅階梯式」趨勢推導 (1/11~1/24 逐漸接近寒假，趨勢緩步上揚)
+                if (d >= 11 && d <= 14) {
+                    base += 0;
+                } else if (d >= 15 && d <= 19) {
+                    base += 400 * scaleMultiplier; // 1月中旬寒假開始
+                } else if (d >= 20) {
+                    base += 1200 * scaleMultiplier; // 接近1月底過年前夕
+                }
 
-                // B. 出發日「星期幾」效應
+                // B. 去程日「星期幾」平假日公式 (2027/1/1為週五 -> d%7: 1=五, 2=六, 3=日, 4=一, 5=二, 6=三, 0=四)
                 let depDay = d % 7;
-                if (depDay === 2) base += 1000 * scaleMultiplier; 
-                else if (depDay === 1 || depDay === 3) base += 300 * scaleMultiplier;
+                if (depDay === 2) {
+                    base += 1000 * scaleMultiplier; // 週六去程最貴
+                } else if (depDay === 1 || depDay === 3) {
+                    base += 300 * scaleMultiplier;  // 週五、週日次之
+                } else {
+                    base -= 100 * scaleMultiplier;  // 一到四平日出發退回基本價
+                }
 
-                // C. 回程日「星期幾」效應
+                // C. 回程日「星期幾」平假日公式
                 let retDay = r % 7;
-                if (retDay === 3 || retDay === 4) base += 800 * scaleMultiplier;  
-                else if (retDay === 1 || retDay === 2) base += 400 * scaleMultiplier;
+                if (retDay === 5 || retDay === 6 || retDay === 0) {
+                    base += 0;                      // 週二至週四回程最便宜
+                } else if (retDay === 3 || retDay === 4) {
+                    base += 700 * scaleMultiplier;  // 週日、週一回程收假最貴
+                } else {
+                    base += 300 * scaleMultiplier;  // 週五、週六居中
+                }
 
-                // D. 天數懲罰 (過短或過長)
+                // D. 天數權重平滑公式 (排除天數極端過短或過長的漲幅懲罰)
                 let duration = r - d;
-                if (duration < 5) base += (5 - duration) * 300 * scaleMultiplier;  
-                else if (duration > 10) base += (duration - 10) * 150 * scaleMultiplier; 
+                if (duration < 5) {
+                    base += (5 - duration) * 400 * scaleMultiplier;  
+                } else if (duration > 10) {
+                    base += (duration - 10) * 200 * scaleMultiplier; 
+                }
 
-                // E. 隨機擾動與尾數美化
-                let drift = Math.floor(Math.sin(d * 7 + r * 3) * 80 * scaleMultiplier);
+                // E. 微幅數學隨機擾動與尾數美化
+                let drift = Math.floor(Math.sin(d * 5 + r * 2) * 50 * scaleMultiplier);
                 let finalPrice = base + drift;
 
+                // 統一機票尾數外觀
                 finalPrice = Math.floor(finalPrice / 10) * 10;
                 let magicTail = (d + r) % 3;
                 if (magicTail === 0) finalPrice += 4;
@@ -508,58 +525,55 @@
                 return finalPrice;
             }
 
-            // // ==========================================
-            // 3. 繪製矩陣表格 (去程在上、回程在右)
+            // ==========================================
+            // 3. 繪製矩陣表格 (去程在上 1/11-1/24，回程在右 1/11-1/24)
             // ==========================================
             let tableHtml = '<table class="flight-matrix" id="mainMatrix">';
             
-            // 準備星期推算工具
+            // 星期文字對照工具
             const weekDays = ['日', '一', '二', '三', '四', '五', '六'];
             function getLabelWithWeek(dayIndex) {
-                let m = dayIndex > 31 ? 2 : 1; 
-                let d = dayIndex > 31 ? dayIndex - 31 : dayIndex;
-                let dateObj = new Date(2027, m - 1, d); 
+                let dateObj = new Date(2027, 0, dayIndex); // 2027年1月
                 let wd = weekDays[dateObj.getDay()];
-                return `${m}/${d.toString().padStart(2, '0')}(${wd})`;
+                return `1/${dayIndex.toString().padStart(2, '0')}(${wd})`;
             }
 
-            // --- 繪製表頭 (Top Row)：去程日期 (1 ~ 31) ---
+            // --- 繪製表頭 (Top Row)：去程日期限限縮在 1/11 ~ 1/24 ---
             tableHtml += '<thead><tr>';
-            for(let d = 1; d <= 31; d++) { 
-                // 綠色底色，並鎖定在頂部
+            for(let d = 11; d <= 24; d++) { 
                 tableHtml += `<th class="dep-date-header" onclick="autoFindBest(${d})" 
-                                  style="background-color: #4ab07d; color: white; cursor: pointer; position: sticky; top: 0; z-index: 2;">
-                                  ${getLabelWithWeek(d)}
+                                  style="background-color: #2e7d32; color: white; cursor: pointer; position: sticky; top: 0; z-index: 2;">
+                                  去程<br>${getLabelWithWeek(d)}
                               </th>`;
             }
-            // 表頭最右上角的角落標籤 (深色底色，同時鎖定頂部與右側)
+            // 東上角角落
             tableHtml += `<th class="sticky-corner" 
-                              style="background-color: #474747; color: white; position: sticky; top: 0; right: 0; z-index: 10; min-width: 80px;">
+                              style="background-color: #222; color: white; position: sticky; top: 0; right: 0; z-index: 10; min-width: 80px;">
                               回程 &darr;
                           </th>`;
             tableHtml += '</tr></thead><tbody>';
 
-            // --- 繪製表格內容 (Rows)：回程日期 (3 ~ 36) ---
-            for(let r = 3; r <= 36; r++) {
+            // --- 繪製表格內容 (Rows)：回程日期限縮在 1/11 ~ 1/24 ---
+            for(let r = 11; r <= 24; r++) {
                 tableHtml += '<tr>';
-                let retKey = r > 31 ? `2/${(r-31).toString().padStart(2, '0')}` : `1/${r.toString().padStart(2, '0')}`;
+                let retKey = `1/${r.toString().padStart(2, '0')}`;
                 
-                // 內層迴圈：對應每天的出發日期
-                for(let d = 1; d <= 31; d++) {
+                for(let d = 11; d <= 24; d++) {
                     let depKey = `1/${d.toString().padStart(2, '0')}`;
                     let key = `${depKey}-${retKey}`; 
                     let duration = r - d;
                     
                     if (r <= d) {
-                        // 邏輯不合理 (回程日 <= 出發日) 的格子反灰
+                        // 時空倒流格反灰
                         tableHtml += `<td style="background:#f5f5f5; color:#ddd; cursor:default; text-align:center;">-</td>`;
                     } else {
                         let isRealData = priceData.hasOwnProperty(key);
                         let price = isRealData ? priceData[key] : calculateDynamicPrice(d, r);
                         
                         let cellClass = "price-cell";
-                        if (price <= minRealPrice + 500) cellClass += " low-price";
-                        else if (price >= maxRealPrice - 800) cellClass += " expensive-price";
+                        // 依據新區間的真實底價與高價動態上色
+                        if (price <= minRealPrice + 400) cellClass += " low-price";
+                        else if (price >= maxRealPrice - 600) cellClass += " expensive-price";
 
                         let style = isRealData ? "font-weight:900; color:#d84315;" : "";
                         let prefix = isRealData ? "★" : ""; 
@@ -572,10 +586,9 @@
                     }
                 }
                 
-                // --- 每一列的【最右側】加上回程日期的標籤 ---
-                // 深色底色，並使用 position: sticky 確保向右滑動時標籤不會消失
+                // --- 每一列最右側的回程標籤 (1/11 ~ 1/24) ---
                 tableHtml += `<td class="ret-date-col" 
-                                  style="background-color: #474747; color: white; font-weight: bold; text-align: center; position: sticky; right: 0; z-index: 1; border-left: 2px solid #222;">
+                                  style="background-color: #333; color: white; font-weight: bold; text-align: center; position: sticky; right: 0; z-index: 1; border-left: 2px solid #222;">
                                   ${getLabelWithWeek(r)}
                               </td>`;
                 
