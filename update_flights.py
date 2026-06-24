@@ -49,8 +49,8 @@ def fetch_price(out_date, ret_date):
 # --- 主程式區塊 ---
 def main():
     real_prices = {}
-    outbound_dates = ["2027-01-11", "2027-01-13", "2027-01-15", "2027-01-17"]
-    return_dates = ["2027-01-16", "2027-01-19", "2027-01-22", "2027-01-24"]
+    outbound_dates = ["2026-09-11"]
+    return_dates = ["2026-09-17"]
 
     for out_date in outbound_dates:
         for ret_date in return_dates:
