@@ -22,15 +22,19 @@ def fetch_price(out_date, ret_date):
         response = requests.get("https://serpapi.com/search.json", params=params)
         data = response.json()
         
-        # 偵錯：如果有 API 錯誤訊息，直接打印出來
-        if "error" in data:
-            print(f"API 錯誤 ({out_date} -> {ret_date}): {data['error']}")
-            return None
+        # 【診斷用】如果抓不到預期的欄位，直接把所有的鍵值印出來
+        if 'best_flights' not in data and 'other_flights' not in data:
+            print(f"DEBUG: 找不到最佳航班欄位！")
+            print(f"回傳的 JSON 根目錄所有 Keys: {list(data.keys())}")
             
-        # 提取價格
-        if 'best_flights' in data and len(data['best_flights']) > 0:
+            # 檢查是否有其他可能的欄位名稱（例如 'flights' 或 'search_results'）
+            # 你可以在這裡把抓到的 key 貼出來給我，我幫你修改
+            return None
+
+        # 正常抓取邏輯
+        if 'best_flights' in data:
             return data['best_flights'][0].get('price')
-        elif 'other_flights' in data and len(data['other_flights']) > 0:
+        elif 'other_flights' in data:
             return data['other_flights'][0].get('price')
         
         print(f"搜尋不到航班數據: {out_date} -> {ret_date}")
