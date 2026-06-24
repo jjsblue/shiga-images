@@ -10,7 +10,7 @@ def fetch_price(out_date, ret_date):
     params = {
         "engine": "google_flights",
         "departure_id": "TPE",
-        "arrival_id": "TYO",
+        "arrival_id": "NRT",
         "outbound_date": out_date,
         "return_date": ret_date,
         "currency": "TWD",
