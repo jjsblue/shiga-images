@@ -15,23 +15,25 @@ def fetch_price(out_date, ret_date):
         "return_date": ret_date,
         "currency": "TWD",
         "hl": "zh-tw",
-        "api_key": API_KEY
+        "api_key": API_KEY,
+        # 強制加入桌機版 Chrome 的 User-Agent 與語言，偽裝成真實使用者點擊，降低被 Google 阻擋的機率
+        "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36"
     }
     
     try:
         response = requests.get("https://serpapi.com/search.json", params=params)
         data = response.json()
         
-        # 【診斷用】如果抓不到預期的欄位，直接把所有的鍵值印出來
+        # 【抓出真正問題點】如果 Google 擋爬蟲或出現異常，直接印出 Google 報錯內容
+        if 'error' in data:
+            print(f"GOOGLE 報錯內容: {data.get('error')}")
+            return None
+            
         if 'best_flights' not in data and 'other_flights' not in data:
             print(f"DEBUG: 找不到最佳航班欄位！")
             print(f"回傳的 JSON 根目錄所有 Keys: {list(data.keys())}")
-            
-            # 檢查是否有其他可能的欄位名稱（例如 'flights' 或 'search_results'）
-            # 你可以在這裡把抓到的 key 貼出來給我，我幫你修改
             return None
 
-        # 正常抓取邏輯
         if 'best_flights' in data:
             return data['best_flights'][0].get('price')
         elif 'other_flights' in data:
