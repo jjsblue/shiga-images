@@ -40,22 +40,26 @@ jobs:
         run: python update_flights.py
 
             # 5. Commit & Push
-      - name: Commit and push changes
+     - name: Commit and push changes
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-
-          # 先同步遠端
-          git pull --rebase origin main
-
+          
+          # 強制儲存任何未提交的變動，避免 rebase 失敗
+          git stash
+          
+          # 拉取遠端最新版本並重定基底
+          git pull --rebase origin main || echo "No rebase needed"
+          
+          # 將暫存的變動釋放回來
+          git stash pop || echo "No stash to pop"
+          
           # 加入變更
-          git add data.json
-
-          # 沒變更就結束
-          git diff --cached --quiet && exit 0
-
-          # commit
+          git add data.json || echo "No data.json to add"
+          
+          # 如果沒有產生新檔案或沒有變動，直接結束不報錯
+          git diff --staged --quiet && exit 0
+          
+          # commit & push
           git commit -m "🤖 Auto-update flight prices"
-
-          # push
           git push origin HEAD:main
