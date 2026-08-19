@@ -3,8 +3,9 @@ import requests
 import json
 
 # 從環境變數獲取 API Key
+"""
+底下這區塊全部被暫停：
 API_KEY = os.getenv("SERPAPI_KEY") 
-
 def fetch_price(out_date, ret_date):
     """查詢單一日期區段的機票價格"""
     params = {
@@ -79,3 +80,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+    """
