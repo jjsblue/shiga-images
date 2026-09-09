@@ -137,10 +137,10 @@
         }
         
         .node-total { top: 15px; right: 15px; border-color: #7f8c8d; background: #f8f9fa; font-size: 0.9em; padding: 8px 15px;}
-        .node-1 { top: 15%; right: 25%; border-color: #3498db; }
-        .node-2 { top: 45%; left: 50%; transform: translateX(-50%); border-color: #e67e22; }
-        .node-3 { top: 65%; left: 15%; border-color: #2ecc71; }
-        .node-4 { bottom: 15%; right: 15%; border-color: #9b59b6; }
+        .node-1 { top: 25%; left: 15%; border-color: #3498db; }
+        .node-2 { top: 25%; left: 45%; border-color: #e67e22; }
+        .node-3 { top: 60%; left: 65%; border-color: #2ecc71; }
+        .node-4 { top: 25%; right: 5%; border-color: #9b59b6; }
 
         .dashboard-content {
             padding: 30px;
@@ -286,14 +286,17 @@
     <div id="trailmap" class="tab-content">
         <div class="map-container">
             <div class="map-title">📍 點擊下方地圖板塊查看詳情</div>
-            <svg style="position:absolute; top:0; left:0; width:100%; height:100%; pointer-events:none;">
-                <line x1="20%" y1="70%" x2="50%" y2="50%" stroke="#7f8c8d" stroke-width="4" stroke-dasharray="8,8" opacity="0.6"/>
-                <text x="32%" y="58%" fill="#7f8c8d" font-size="12" font-weight="bold" transform="rotate(-25, 320, 180)">雪道/纜車可互通</text>
-                <line x1="50%" y1="50%" x2="75%" y2="20%" stroke="#7f8c8d" stroke-width="4" stroke-dasharray="8,8" opacity="0.6"/>
+           <svg style="position:absolute; top:0; left:0; width:100%; height:100%; pointer-events:none;">
+                <!-- 第一區連第二區 (水平線，對齊按鈕垂直置中) -->
+                <line x1="29%" y1="33%" x2="44%" y2="33%" stroke="#7f8c8d" stroke-width="4" stroke-dasharray="8,8" opacity="0.6"/>
+                <text x="30%" y="29%" fill="#7f8c8d" font-size="12" font-weight="bold">雪道/纜車可互通</text>
+                
+                <!-- 第二區連第三區 (斜線，從第二區底部連至第三區左上) -->
+                <line x1="52%" y1="43%" x2="68%" y2="60%" stroke="#7f8c8d" stroke-width="4" stroke-dasharray="8,8" opacity="0.6"/>
             </svg>
-            <div style="position: absolute; top: 72%; right: 15px; color: #e74c3c; font-size: 12px; font-weight: bold; text-align: right; line-height: 1.4; pointer-events: none; z-index: 10;">
-                ⚠️ 需搭接駁巴士<br>無法滑行
-            </div>
+            <div style="position: absolute; top: 47%; right: 5%; color: #e74c3c; font-size: 12px; font-weight: bold; text-align: center; line-height: 1.4; pointer-events: none; z-index: 10;">
+    ⚠️ 需搭接駁巴士<br>無法滑行
+</div>
 
             <div class="map-node node-1" data-target="area1">第一區<br><span style="font-size:12px;font-weight:normal;">(奧志賀/燒額山)</span></div>
             <div class="map-node node-2 active" data-target="area2">第二區<br><span style="font-size:12px;font-weight:normal;">(中央區)</span></div>
