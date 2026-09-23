@@ -933,6 +933,20 @@
             updateDashboard('area2');
         }
     });
+    function openModal(imageSrc) {
+        const modal = document.getElementById("imageModal");
+        const modalImg = document.getElementById("modalImg");
+        modal.style.display = "block";
+        modalImg.src = imageSrc;
+    }
+
+    function closeModal(event) {
+        const modal = document.getElementById("imageModal");
+        // 確保只有點擊黑底背景或右上角 X 按鈕時才關閉，點擊大圖本身不會關閉
+        if (event.target === modal || event.target.className === 'close-btn') {
+            modal.style.display = "none";
+        }
+    }
 </script>
 <!-- 2. 彈出視窗 (Modal) 結構 -->
 <div id="imageModal" class="modal" onclick="closeModal(event)">
