@@ -5,233 +5,300 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>2027 志賀高原滑雪攻略手冊</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <style>
-        :root {
-            --primary-color: #2c3e50;
-            --secondary-color: #3498db;
-            --accent-color: #e67e22;
-            --bg-color: #f4f7f6;
-            --card-bg: #ffffff;
-            --text-color: #333333;
-        }
+<style>
+    :root {
+        --primary-color: #2c3e50;
+        --secondary-color: #3498db;
+        --accent-color: #e67e22;
+        --bg-color: #f4f7f6;
+        --card-bg: #ffffff;
+        --text-color: #333333;
+    }
 
-        body {
-            font-family: 'Helvetica Neue', Arial, '微軟正黑體', sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            margin: 0;
-            padding: 0;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
+    body {
+        font-family: 'Helvetica Neue', Arial, '微軟正黑體', sans-serif;
+        background-color: var(--bg-color);
+        color: var(--text-color);
+        margin: 0;
+        padding: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
 
-        /* 主導航框架 (Tab 系統) */
-        .main-nav {
-            width: 100%;
-            background: var(--primary-color);
-            position: sticky;
-            top: 0;
-            z-index: 1000;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
-        }
-        .nav-tabs {
-            display: flex;
-            justify-content: center;
-            max-width: 1000px;
-            margin: 0 auto;
-            list-style: none;
-            padding: 0;
-            flex-wrap: wrap;
-        }
-        .nav-item {
-            padding: 15px 20px;
-            color: #bdc3c7;
-            cursor: pointer;
-            font-weight: bold;
-            transition: all 0.3s;
-            border-bottom: 4px solid transparent;
-            white-space: nowrap;
-        }
-        .nav-item:hover { color: white; }
-        .nav-item.active {
-            color: white;
-            border-bottom: 4px solid var(--secondary-color);
-            background: rgba(255,255,255,0.1);
-        }
+    /* 主導航框架 (Tab 系統) */
+    .main-nav {
+        width: 100%;
+        background: var(--primary-color);
+        position: sticky;
+        top: 0;
+        z-index: 1000;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    }
+    .nav-tabs {
+        display: flex;
+        justify-content: center;
+        max-width: 1000px;
+        margin: 0 auto;
+        list-style: none;
+        padding: 0;
+        flex-wrap: wrap;
+    }
+    .nav-item {
+        padding: 15px 20px;
+        color: #bdc3c7;
+        cursor: pointer;
+        font-weight: bold;
+        transition: all 0.3s;
+        border-bottom: 4px solid transparent;
+        white-space: nowrap;
+    }
+    .nav-item:hover { color: white; }
+    .nav-item.active {
+        color: white;
+        border-bottom: 4px solid var(--secondary-color);
+        background: rgba(255,255,255,0.1);
+    }
 
-        .container {
-            max-width: 1000px;
-            width: 95%;
-            margin: 20px 0;
-        }
+    .container {
+        max-width: 1000px;
+        width: 95%;
+        margin: 20px 0;
+    }
 
-        .tab-content { display: none; animation: fadeIn 0.5s; }
-        .tab-content.active { display: block; }
+    .tab-content { display: none; animation: fadeIn 0.5s; }
+    .tab-content.active { display: block; }
 
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
 
-        /* 一般資訊卡片樣式 */
-        .info-card {
-            background: white;
-            border-radius: 12px;
-            padding: 25px;
-            margin-bottom: 20px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 15px;
-        }
-        th, td {
-            text-align: left;
-            padding: 12px;
-            border-bottom: 1px solid #eee;
-        }
-        th { background: #f8f9fa; color: var(--primary-color); }
-        .price-tag { color: #e74c3c; font-weight: bold; font-size: 1.1em; }
+    /* 一般資訊卡片樣式 */
+    .info-card {
+        background: white;
+        border-radius: 12px;
+        padding: 25px;
+        margin-bottom: 20px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+    }
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 15px;
+    }
+    th, td {
+        text-align: left;
+        padding: 12px;
+        border-bottom: 1px solid #eee;
+    }
+    th { background: #f8f9fa; color: var(--primary-color); }
+    .price-tag { color: #e74c3c; font-weight: bold; font-size: 1.1em; }
 
-        /* 雪道地圖樣式 */
+    /* 雪道地圖樣式 */
+    .map-container {
+        position: relative;
+        width: 100%;
+        height: 350px;
+        background: #e2e8f0;
+        border-bottom: 2px solid #cbd5e1;
+        border-radius: 12px 12px 0 0;
+        overflow: hidden;
+    }
+    .map-title {
+        position: absolute;
+        top: 10px;
+        left: 15px;
+        color: #7f8c8d;
+        font-weight: bold;
+        z-index: 10;
+    }
+    .map-node {
+        position: absolute;
+        padding: 12px 20px;
+        background: white;
+        border: 3px solid;
+        border-radius: 8px;
+        font-weight: bold;
+        cursor: pointer;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        transition: all 0.2s ease;
+        z-index: 5;
+        text-align: center;
+    }
+    .map-node:hover {
+        transform: translateY(-5px) scale(1.05);
+        box-shadow: 0 8px 15px rgba(0,0,0,0.2);
+    }
+    .map-node.active {
+        background-color: var(--secondary-color);
+        color: white;
+        border-color: var(--primary-color) !important;
+    }
+    
+    .node-total { top: 15px; right: 15px; border-color: #7f8c8d; background: #f8f9fa; font-size: 0.9em; padding: 8px 15px;}
+    .node-1 { top: 25%; left: 15%; border-color: #3498db; }
+    .node-2 { top: 25%; left: 45%; border-color: #e67e22; }
+    .node-3 { top: 60%; left: 65%; border-color: #2ecc71; }
+    .node-4 { top: 25%; right: 5%; border-color: #9b59b6; }
+
+    .dashboard-content {
+        padding: 30px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 20px;
+        background: white;
+        border-radius: 0 0 12px 12px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+    }
+    .info-section { flex: 1 1 300px; }
+    .chart-section { flex: 1 1 250px; display: flex; flex-direction: column; align-items: center; }
+    .info-section h2 {
+        color: var(--primary-color);
+        border-bottom: 2px solid var(--secondary-color);
+        padding-bottom: 10px;
+        margin-top: 0;
+    }
+    .data-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+        gap: 15px;
+        margin-top: 20px;
+    }
+    .data-card {
+        background: #f8f9fa;
+        padding: 15px;
+        border-radius: 8px;
+        text-align: center;
+    }
+    .data-card h4 { margin: 0 0 5px 0; color: #7f8c8d; font-size: 14px; }
+    .data-card p { margin: 0; font-size: 18px; font-weight: bold; color: var(--primary-color); }
+    .highlight-transport {
+        background-color: #fff3cd;
+        border-left: 5px solid #ffc107;
+        padding: 15px;
+        margin: 20px 0;
+        border-radius: 4px;
+    }
+    .map-gallery { margin-top: 20px; }
+    .map-gallery h3 { margin-top: 0; color: var(--primary-color); }
+    .gallery-images { display: flex; flex-direction: column; gap: 15px; }
+    .gallery-images img { width: 100%; border-radius: 8px; border: 1px solid #bdc3c7; }
+
+    /* 機票矩陣與互動樣式 */
+    .flight-matrix {
+        width: 100%; border-collapse: collapse; text-align: center; font-size: 12px; min-width: 2500px;
+    }
+    .flight-matrix th, .flight-matrix td {
+        padding: 10px 5px; border: 1px solid #eee; white-space: nowrap;
+    }
+    .flight-matrix thead th {
+        position: sticky; top: 0; background-color: #263238; color: white; z-index: 3;
+    }
+    .flight-matrix tbody td.dep-date-col {
+        position: sticky; left: 0; background-color: #e8f5e9; font-weight: bold; z-index: 2;
+        color: #2e7d32; cursor: pointer; border-right: 2px solid #2e7d32;
+    }
+    .flight-matrix tbody td.dep-date-col:hover {
+        background-color: #a5d6a7; color: white;
+    }
+    .flight-matrix thead th.sticky-corner {
+        position: sticky; top: 0; left: 0; z-index: 4; background-color: #1a237e;
+    }
+    .price-cell { cursor: pointer; transition: 0.2s; background-color: #fff; color: #007bff; text-decoration: underline;}
+    .price-cell:hover { 
+        background-color: #e3f2fd !important; 
+        transform: scale(1.05); 
+        z-index: 10; 
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        text-decoration: none;
+        color: #0d47a1;
+        font-weight: bold;
+    }
+    .low-price { color: #28a745; font-weight: bold; background-color: #e8f5e9; }
+    .expensive-price { color: #d32f2f; }
+    
+    @keyframes recommend-pulse {
+        0% { background-color: #fb8c00; color: white; transform: scale(1); }
+        50% { background-color: #ffe0b2; color: #e65100; transform: scale(1.1); }
+        100% { background-color: #fb8c00; color: white; transform: scale(1); }
+    }
+    .best-recommend {
+        animation: recommend-pulse 1s infinite;
+        z-index: 5 !important;
+        font-weight: bold !important;
+        border: 2px solid #ef6c00 !important;
+        text-decoration: none !important;
+    }
+
+    @media (max-width: 768px) {
         .map-container {
-            position: relative;
-            width: 100%;
-            height: 350px;
-            background: #e2e8f0;
-            border-bottom: 2px solid #cbd5e1;
-            border-radius: 12px 12px 0 0;
-            overflow: hidden;
-        }
-        .map-title {
-            position: absolute;
-            top: 10px;
-            left: 15px;
-            color: #7f8c8d;
-            font-weight: bold;
-            z-index: 10;
+            height: 450px; 
         }
         .map-node {
-            position: absolute;
-            padding: 12px 20px;
-            background: white;
-            border: 3px solid;
-            border-radius: 8px;
-            font-weight: bold;
-            cursor: pointer;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            transition: all 0.2s ease;
-            z-index: 5;
-            text-align: center;
+            padding: 8px 12px; 
+            font-size: 0.9em;  
         }
-        .map-node:hover {
-            transform: translateY(-5px) scale(1.05);
-            box-shadow: 0 8px 15px rgba(0,0,0,0.2);
-        }
-        .map-node.active {
-            background-color: var(--secondary-color);
-            color: white;
-            border-color: var(--primary-color) !important;
-        }
+        .node-1 { top: 15%; left: 5%; }
+        .node-2 { top: 30%; left: 45%; }
+        .node-3 { top: 50%; left: 45%; }
+        .node-4 { top: 70%; right: 5%; bottom: auto; } 
         
-        .node-total { top: 15px; right: 15px; border-color: #7f8c8d; background: #f8f9fa; font-size: 0.9em; padding: 8px 15px;}
-        .node-1 { top: 25%; left: 15%; border-color: #3498db; }
-        .node-2 { top: 25%; left: 45%; border-color: #e67e22; }
-        .node-3 { top: 60%; left: 65%; border-color: #2ecc71; }
-        .node-4 { top: 25%; right: 5%; border-color: #9b59b6; }
+        .map-container > div[style*="e74c3c"] {
+            top: auto !important;
+            bottom: 10px !important;
+            right: 10px !important;
+            text-align: right !important;
+        }
+        .map-container svg {
+            display: none;
+        }
+    }
 
-        .dashboard-content {
-            padding: 30px;
-            display: flex;
-            flex-wrap: wrap;
-            gap: 20px;
-            background: white;
-            border-radius: 0 0 12px 12px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-        }
-        .info-section { flex: 1 1 300px; }
-        .chart-section { flex: 1 1 250px; display: flex; flex-direction: column; align-items: center; }
-        .info-section h2 {
-            color: var(--primary-color);
-            border-bottom: 2px solid var(--secondary-color);
-            padding-bottom: 10px;
-            margin-top: 0;
-        }
-        .data-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-            gap: 15px;
-            margin-top: 20px;
-        }
-        .data-card {
-            background: #f8f9fa;
-            padding: 15px;
-            border-radius: 8px;
-            text-align: center;
-        }
-        .data-card h4 { margin: 0 0 5px 0; color: #7f8c8d; font-size: 14px; }
-        .data-card p { margin: 0; font-size: 18px; font-weight: bold; color: var(--primary-color); }
-        .highlight-transport {
-            background-color: #fff3cd;
-            border-left: 5px solid #ffc107;
-            padding: 15px;
-            margin: 20px 0;
-            border-radius: 4px;
-        }
-        .map-gallery { margin-top: 20px; }
-        .map-gallery h3 { margin-top: 0; color: var(--primary-color); }
-        .gallery-images { display: flex; flex-direction: column; gap: 15px; }
-        .gallery-images img { width: 100%; border-radius: 8px; border: 1px solid #bdc3c7; }
+    /* =========================================
+       點擊放大圖片 (Lightbox / Modal) 完整專用樣式
+       ========================================= */
+    .modal {
+        display: none; 
+        position: fixed;
+        z-index: 9999;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.85);
+        backdrop-filter: blur(3px); 
+    }
 
-        /* 機票矩陣與互動樣式 */
-        .flight-matrix {
-            width: 100%; border-collapse: collapse; text-align: center; font-size: 12px; min-width: 2500px;
-        }
-        .flight-matrix th, .flight-matrix td {
-            padding: 10px 5px; border: 1px solid #eee; white-space: nowrap;
-        }
-        .flight-matrix thead th {
-            position: sticky; top: 0; background-color: #263238; color: white; z-index: 3;
-        }
-        .flight-matrix tbody td.dep-date-col {
-            position: sticky; left: 0; background-color: #e8f5e9; font-weight: bold; z-index: 2;
-            color: #2e7d32; cursor: pointer; border-right: 2px solid #2e7d32;
-        }
-        .flight-matrix tbody td.dep-date-col:hover {
-            background-color: #a5d6a7; color: white;
-        }
-        .flight-matrix thead th.sticky-corner {
-            position: sticky; top: 0; left: 0; z-index: 4; background-color: #1a237e;
-        }
-        .price-cell { cursor: pointer; transition: 0.2s; background-color: #fff; color: #007bff; text-decoration: underline;}
-        .price-cell:hover { 
-            background-color: #e3f2fd !important; 
-            transform: scale(1.05); 
-            z-index: 10; 
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-            text-decoration: none;
-            color: #0d47a1;
-            font-weight: bold;
-        }
-        .low-price { color: #28a745; font-weight: bold; background-color: #e8f5e9; }
-        .expensive-price { color: #d32f2f; }
-        
-        @keyframes recommend-pulse {
-            0% { background-color: #fb8c00; color: white; transform: scale(1); }
-            50% { background-color: #ffe0b2; color: #e65100; transform: scale(1.1); }
-            100% { background-color: #fb8c00; color: white; transform: scale(1); }
-        }
-        .best-recommend {
-            animation: recommend-pulse 1s infinite;
-            z-index: 5 !important;
-            font-weight: bold !important;
-            border: 2px solid #ef6c00 !important;
-            text-decoration: none !important;
-        }
-    </style>
-</head>
+    .modal-content {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        max-width: 90vw;
+        max-height: 90vh;
+        border-radius: 8px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+        object-fit: contain;
+    }
+
+    .close-btn {
+        position: absolute;
+        top: 20px;
+        right: 30px;
+        color: #f1f1f1;
+        font-size: 45px;
+        font-weight: bold;
+        cursor: pointer;
+        z-index: 10000;
+        transition: color 0.3s;
+    }
+
+    .close-btn:hover {
+        color: #e74c3c; 
+    }
+</style>
+  </head>
 <body>
 
 <nav class="main-nav">
@@ -246,6 +313,7 @@
 
 <div class="container">
     
+    
     <div id="flights" class="tab-content active">
         <div style="text-align: center;">
             <div class="info-card"style="background-color: #c2f3ff;">
@@ -255,10 +323,18 @@
            </div>
            <div class="info-card"style="background-color: #e0c2ff;">
            <h2 style="margin-top:0;">日本退稅新制</h2>
-                             <img src="https://github.com/jjsblue/shiga-images/blob/main/taxrefund.jpg?raw=true" alt="日本退稅新制" style="width: 60%; height: 60%; object-fit: cover; border-radius: 8px;">
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px; margin-top: 20px;">
+    <!-- 加上 cursor: pointer 讓滑鼠移過去變手指，onclick 觸發放大功能 -->
+    <img src="https://github.com/jjsblue/shiga-images/blob/main/taxrefund.jpg?raw=true" 
+         alt="日本退稅新制" 
+         style="width: 100%; height: 100%; object-fit: cover; border-radius: 8px; cursor: pointer; transition: 0.3s;" 
+         onclick="openModal(this.src)"
+         onmouseover="this.style.opacity='0.8'" 
+         onmouseout="this.style.opacity='1'">
+</div>                            
            </div> 
            </div>
-        <!--
+      <!--
         <div class="info-card" style="margin-bottom: 20px; border-left: 5px solid #fb8c00; background-color: #fff8e1;">  
             <h3 style="margin-top: 0; color: #e65100;">💡 智慧選票功能已啟用</h3>
             <p style="margin-bottom: 0;"><strong>使用方式：</strong> 點擊下方表格「綠色出發日期」，系統將自動為您找出<strong>停留超過 5 天</strong>且<strong>最便宜</strong>的回程組合！<br>點擊<strong>價格欄位</strong>自動計算天數，再點擊<strong>確認</strong>可連接Google Flight實時價格</p>
@@ -366,11 +442,15 @@
         </div>
         
     </div>
-
-    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px; margin-top: 20px;">
-            <img src="https://github.com/jjsblue/shiga-images/blob/main/SUPERHOTEL%E4%B8%8A%E9%87%8E%E5%85%A5%E8%B0%B7%E5%8F%A3%E5%82%99%E5%93%81.png?raw=true" alt="東京住宿備品" style="width: 100%; height: 100%; object-fit: cover; border-radius: 8px;">
-
-        </div>
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px; margin-top: 20px;">
+    <!-- 加上 cursor: pointer 讓滑鼠移過去變手指，onclick 觸發放大功能 -->
+    <img src="https://github.com/jjsblue/shiga-images/blob/main/SUPERHOTEL%E4%B8%8A%E9%87%8E%E5%85%A5%E8%B0%B7%E5%8F%A3%E5%82%99%E5%93%81.png?raw=true" 
+         alt="東京住宿備品" 
+         style="width: 100%; height: 100%; object-fit: cover; border-radius: 8px; cursor: pointer; transition: 0.3s;" 
+         onclick="openModal(this.src)"
+         onmouseover="this.style.opacity='0.8'" 
+         onmouseout="this.style.opacity='1'">
+</div>
         
     </div>
 </div>
@@ -395,10 +475,16 @@
 <span>早餐7:30 晚餐18:00-19:00</span></br>
 <br>▼ 旅館內雪具租借價格參考 ▼
 <br>
-<div style="text-align">
-            <img src="https://github.com/jjsblue/shiga-images/blob/main/hotel_rental.png?raw=true" alt="旅館內雪具租用價格" style="width: 70%; height: 70%; object-fit: cover; border-radius: 8px;">
-
-        </div></br>        
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px; margin-top: 20px;">
+    <!-- 加上 cursor: pointer 讓滑鼠移過去變手指，onclick 觸發放大功能 -->
+    <img src="https://github.com/jjsblue/shiga-images/blob/main/hotel_rental.png?raw=true" 
+         alt="旅館內雪具租用價格" 
+         style="width: 100%; height: 100%; object-fit: cover; border-radius: 8px; cursor: pointer; transition: 0.3s;" 
+         onclick="openModal(this.src)"
+         onmouseover="this.style.opacity='0.8'" 
+         onmouseout="this.style.opacity='1'">
+</div>
+</br>        
 </div>
         
         </div>
@@ -410,14 +496,30 @@
 <div style="text-align: center;">
             <h2><a href="https://www.shigakogen-ski.or.jp/winter/ticket/online.html#sub-contents-g" target="_blank" rel="noopener noreferrer" style="color: inherit;text-decoration:underline;">🎫 志賀高原全山共通卷 11/1開賣 </a></h2>
         <span style="font-size: 0.85em; color: #666;">（註：如不會離開中央區雪場，全山券並不划算）</span>
-              <img src="https://github.com/jjsblue/shiga-images/blob/main/26-27shiga_rift.png?raw=true" alt="26-27志賀全山券價格" style="display: block; margin: 0 auto;width: 70%; height: 70%; object-fit: cover; border-radius: 8px;">
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px; margin-top: 20px;">
+    <!-- 加上 cursor: pointer 讓滑鼠移過去變手指，onclick 觸發放大功能 -->
+    <img src="https://github.com/jjsblue/shiga-images/blob/main/26-27shiga_rift.png?raw=true" 
+         alt="26-27志賀全山券價格" 
+         style="width: 100%; height: 100%; object-fit: cover; border-radius: 8px; cursor: pointer; transition: 0.3s;" 
+         onclick="openModal(this.src)"
+         onmouseover="this.style.opacity='0.8'" 
+         onmouseout="this.style.opacity='1'">
+</div>
+
         <h2><a href="https://shigakogen.co.jp/winter/ticket/" target="_blank" rel="noopener noreferrer" style="color: inherit;text-decoration:underline;">🎫 志賀高原中央區雪券</a></h2>
         <span style="font-size: 0.85em; color: #666;">（註：如果預計坐很少趟纜車，可以買點數券）</span>  
-            <img src="https://github.com/jjsblue/shiga-images/blob/main/center_ticket.jpg?raw=true" alt="26-27志賀中央區價格" style="display: block; margin: 0 auto;width: 70%; height: 70%; object-fit: cover; border-radius: 8px;"> 
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px; margin-top: 20px;">
+    <!-- 加上 cursor: pointer 讓滑鼠移過去變手指，onclick 觸發放大功能 -->
+    <img src="https://github.com/jjsblue/shiga-images/blob/main/center_ticket.jpg?raw=truee" 
+         alt="26-27志賀中央區價格" 
+         style="width: 100%; height: 100%; object-fit: cover; border-radius: 8px; cursor: pointer; transition: 0.3s;" 
+         onclick="openModal(this.src)"
+         onmouseover="this.style.opacity='0.8'" 
+         onmouseout="this.style.opacity='1'">
+</div>            
 </div>
         </div>
     </div>
-
 
     <div id="transport" class="tab-content">
         <div class="info-card">
@@ -463,8 +565,7 @@
             <div style="background:#fef9e7; padding:15px; border-radius:8px; border-left: 5px solid #f1c40f;">
                 <strong>區內移動：</strong> 持有有效雪票者可「免費」搭乘志賀高原區內接駁巴士 (Shuttle Bus)。<br><br>
                 ⚠️ <strong>注意：</strong> 雪場旅館來回橫手山/熊之湯 (第四區) 都必須搭接駁巴士在 山の駅 轉車，請務必留意轉乘時間以免回不了飯店！
-            </div>
-            <div class="info-card" style="margin-bottom: 25px;">
+              <div class="info-card" style="margin-bottom: 25px;">
     <h2>🚌 區內接駁車時刻表 (Shuttle Bus)</h2>
     <span style="font-size: 0.85em; color: #666;">（冬季期間行駛，持有效雪票可免費搭乘指定區間）</span>
 
@@ -485,6 +586,7 @@
         </iframe>
     </div>
 </div>
+            </div>
         </div>
     </div>
 
@@ -520,75 +622,58 @@
                 buildMatrix({}); 
             });
 
-function buildMatrix(priceData) {
+        function buildMatrix(priceData) {
             // ==========================================
-            // 1. 動態分析新錨點區間的真實數據 (去1/11~1/17, 回1/16~1/24)
+            // 1. 動態分析 API 真實數據，提取智慧錨點
             // ==========================================
             let realValues = Object.values(priceData).filter(p => typeof p === 'number');
-            let minRealPrice = 7044;  // 預設參考底價
-            let maxRealPrice = 10000; // 預設參考天花板
+            let minRealPrice = 6900;  // 預設安全底價
+            let maxRealPrice = 11000; // 預設安全天花板
 
-            // 如果 Python API 有抓到這 16 個錨點的真實數據，就動態更新天花板與地板
+            // 如果 API 有抓到真實數據，就更新天花板與地板
             if (realValues.length > 0) {
                 minRealPrice = Math.min(...realValues);
                 maxRealPrice = Math.max(...realValues);
             }
 
-            // 動態底價：以真實最低價為基礎基準
-            let dynamicBase = minRealPrice > 200 ? minRealPrice - 100 : 6940;
+            // 動態底價：以真實最低價為基準，扣除些微擾動值，確保推算出的低價能與真實相符
+            let dynamicBase = minRealPrice > 200 ? minRealPrice - 150 : 6900;
             
-            // 動態漲幅倍率：根據新錨點區間的真實差價動態縮放波動幅度
+            // 動態漲幅倍率：計算真實價格的「總跨度」，對比預期差價(約3800)來放大或縮小波動
             let priceDiff = maxRealPrice - minRealPrice;
-            let scaleMultiplier = priceDiff > 0 ? (priceDiff / 3000) : 1; 
+            let scaleMultiplier = priceDiff > 0 ? (priceDiff / 3800) : 1; 
 
             // ==========================================
-            // 2. 智慧預測演算法：以真實價格錨點為基準做前後價格推導
+            // 2. 演算法補全：以動態錨點為基礎進行推算
             // ==========================================
             function calculateDynamicPrice(d, r) {
                 let base = dynamicBase;
 
-                // A. 去程日期的「微幅階梯式」趨勢推導 (1/11~1/24 逐漸接近寒假，趨勢緩步上揚)
-                if (d >= 11 && d <= 14) {
-                    base += 0;
-                } else if (d >= 15 && d <= 19) {
-                    base += 400 * scaleMultiplier; // 1月中旬寒假開始
-                } else if (d >= 20) {
-                    base += 1200 * scaleMultiplier; // 接近1月底過年前夕
-                }
+                // A. 出發日期的「季節性/檔期」波動 (乘上倍率，跟著真實高低價縮放)
+                if (d <= 5) base += 800 * scaleMultiplier;  
+                else if (d >= 6 && d <= 14) base += 0;    
+                else if (d >= 15 && d <= 20) base += 1100 * scaleMultiplier; 
+                else if (d >= 21) base += 2300 * scaleMultiplier; 
 
-                // B. 去程日「星期幾」平假日公式 (2027/1/1為週五 -> d%7: 1=五, 2=六, 3=日, 4=一, 5=二, 6=三, 0=四)
+                // B. 出發日「星期幾」效應
                 let depDay = d % 7;
-                if (depDay === 2) {
-                    base += 1000 * scaleMultiplier; // 週六去程最貴
-                } else if (depDay === 1 || depDay === 3) {
-                    base += 300 * scaleMultiplier;  // 週五、週日次之
-                } else {
-                    base -= 100 * scaleMultiplier;  // 一到四平日出發退回基本價
-                }
+                if (depDay === 2) base += 1000 * scaleMultiplier; 
+                else if (depDay === 1 || depDay === 3) base += 300 * scaleMultiplier;
 
-                // C. 回程日「星期幾」平假日公式
+                // C. 回程日「星期幾」效應
                 let retDay = r % 7;
-                if (retDay === 5 || retDay === 6 || retDay === 0) {
-                    base += 0;                      // 週二至週四回程最便宜
-                } else if (retDay === 3 || retDay === 4) {
-                    base += 700 * scaleMultiplier;  // 週日、週一回程收假最貴
-                } else {
-                    base += 300 * scaleMultiplier;  // 週五、週六居中
-                }
+                if (retDay === 3 || retDay === 4) base += 800 * scaleMultiplier;  
+                else if (retDay === 1 || retDay === 2) base += 400 * scaleMultiplier;
 
-                // D. 天數權重平滑公式 (排除天數極端過短或過長的漲幅懲罰)
+                // D. 天數懲罰 (過短或過長)
                 let duration = r - d;
-                if (duration < 5) {
-                    base += (5 - duration) * 400 * scaleMultiplier;  
-                } else if (duration > 10) {
-                    base += (duration - 10) * 200 * scaleMultiplier; 
-                }
+                if (duration < 5) base += (5 - duration) * 300 * scaleMultiplier;  
+                else if (duration > 10) base += (duration - 10) * 150 * scaleMultiplier; 
 
-                // E. 微幅數學隨機擾動與尾數美化
-                let drift = Math.floor(Math.sin(d * 5 + r * 2) * 50 * scaleMultiplier);
+                // E. 隨機擾動與尾數美化
+                let drift = Math.floor(Math.sin(d * 7 + r * 3) * 80 * scaleMultiplier);
                 let finalPrice = base + drift;
 
-                // 統一機票尾數外觀
                 finalPrice = Math.floor(finalPrice / 10) * 10;
                 let magicTail = (d + r) % 3;
                 if (magicTail === 0) finalPrice += 4;
@@ -598,55 +683,58 @@ function buildMatrix(priceData) {
                 return finalPrice;
             }
 
-            // ==========================================
-            // 3. 繪製矩陣表格 (去程在上 1/11-1/24，回程在右 1/11-1/24)
+            // // ==========================================
+            // 3. 繪製矩陣表格 (去程在上、回程在右)
             // ==========================================
             let tableHtml = '<table class="flight-matrix" id="mainMatrix">';
             
-            // 星期文字對照工具
+            // 準備星期推算工具
             const weekDays = ['日', '一', '二', '三', '四', '五', '六'];
             function getLabelWithWeek(dayIndex) {
-                let dateObj = new Date(2027, 0, dayIndex); // 2027年1月
+                let m = dayIndex > 31 ? 2 : 1; 
+                let d = dayIndex > 31 ? dayIndex - 31 : dayIndex;
+                let dateObj = new Date(2027, m - 1, d); 
                 let wd = weekDays[dateObj.getDay()];
-                return `1/${dayIndex.toString().padStart(2, '0')}(${wd})`;
+                return `${m}/${d.toString().padStart(2, '0')}(${wd})`;
             }
 
-            // --- 繪製表頭 (Top Row)：去程日期限限縮在 1/11 ~ 1/24 ---
+            // --- 繪製表頭 (Top Row)：去程日期 (1 ~ 31) ---
             tableHtml += '<thead><tr>';
-            for(let d = 11; d <= 24; d++) { 
+            for(let d = 1; d <= 31; d++) { 
+                // 綠色底色，並鎖定在頂部
                 tableHtml += `<th class="dep-date-header" onclick="autoFindBest(${d})" 
-                                  style="background-color: #2e7d32; color: white; cursor: pointer; position: sticky; top: 0; z-index: 2;">
-                                  去程<br>${getLabelWithWeek(d)}
+                                  style="background-color: #4ab07d; color: white; cursor: pointer; position: sticky; top: 0; z-index: 2;">
+                                  ${getLabelWithWeek(d)}
                               </th>`;
             }
-            // 東上角角落
+            // 表頭最右上角的角落標籤 (深色底色，同時鎖定頂部與右側)
             tableHtml += `<th class="sticky-corner" 
-                              style="background-color: #222; color: white; position: sticky; top: 0; right: 0; z-index: 10; min-width: 80px;">
+                              style="background-color: #474747; color: white; position: sticky; top: 0; right: 0; z-index: 10; min-width: 80px;">
                               回程 &darr;
                           </th>`;
             tableHtml += '</tr></thead><tbody>';
 
-            // --- 繪製表格內容 (Rows)：回程日期限縮在 1/11 ~ 1/24 ---
-            for(let r = 11; r <= 24; r++) {
+            // --- 繪製表格內容 (Rows)：回程日期 (3 ~ 36) ---
+            for(let r = 3; r <= 36; r++) {
                 tableHtml += '<tr>';
-                let retKey = `1/${r.toString().padStart(2, '0')}`;
+                let retKey = r > 31 ? `2/${(r-31).toString().padStart(2, '0')}` : `1/${r.toString().padStart(2, '0')}`;
                 
-                for(let d = 11; d <= 24; d++) {
+                // 內層迴圈：對應每天的出發日期
+                for(let d = 1; d <= 31; d++) {
                     let depKey = `1/${d.toString().padStart(2, '0')}`;
                     let key = `${depKey}-${retKey}`; 
                     let duration = r - d;
                     
                     if (r <= d) {
-                        // 時空倒流格反灰
+                        // 邏輯不合理 (回程日 <= 出發日) 的格子反灰
                         tableHtml += `<td style="background:#f5f5f5; color:#ddd; cursor:default; text-align:center;">-</td>`;
                     } else {
                         let isRealData = priceData.hasOwnProperty(key);
                         let price = isRealData ? priceData[key] : calculateDynamicPrice(d, r);
                         
                         let cellClass = "price-cell";
-                        // 依據新區間的真實底價與高價動態上色
-                        if (price <= minRealPrice + 400) cellClass += " low-price";
-                        else if (price >= maxRealPrice - 600) cellClass += " expensive-price";
+                        if (price <= minRealPrice + 500) cellClass += " low-price";
+                        else if (price >= maxRealPrice - 800) cellClass += " expensive-price";
 
                         let style = isRealData ? "font-weight:900; color:#d84315;" : "";
                         let prefix = isRealData ? "★" : ""; 
@@ -659,9 +747,10 @@ function buildMatrix(priceData) {
                     }
                 }
                 
-                // --- 每一列最右側的回程標籤 (1/11 ~ 1/24) ---
+                // --- 每一列的【最右側】加上回程日期的標籤 ---
+                // 深色底色，並使用 position: sticky 確保向右滑動時標籤不會消失
                 tableHtml += `<td class="ret-date-col" 
-                                  style="background-color: #333; color: white; font-weight: bold; text-align: center; position: sticky; right: 0; z-index: 1; border-left: 2px solid #222;">
+                                  style="background-color: #474747; color: white; font-weight: bold; text-align: center; position: sticky; right: 0; z-index: 1; border-left: 2px solid #222;">
                                   ${getLabelWithWeek(r)}
                               </td>`;
                 
@@ -749,7 +838,6 @@ function buildMatrix(priceData) {
             transport: "<strong>🚗 交通方式：</strong> 絕佳的滑行樞紐！可直接透過雪道與纜車連通第一區 (北) 與第三區 (門戶)。",
             elevation: "2,060m", slope: "約 36°", distance: "依路線變換", chart: [40, 40, 20],
             images: [
-                "https://raw.githubusercontent.com/jjsblue/shiga-images/main/%E5%BF%97%E8%B3%80%E9%AB%98%E5%8E%9F%20%E4%B8%AD%E5%A4%AE%E5%8D%80%E5%9F%9F.png",
                 "https://raw.githubusercontent.com/jjsblue/shiga-images/main/%E4%B8%80%E4%B9%8B%E7%80%A8.png",
                 "https://raw.githubusercontent.com/jjsblue/shiga-images/main/%E9%AB%98%E5%A4%A9%E5%8E%9F.jpg",
                 "https://raw.githubusercontent.com/jjsblue/shiga-images/main/%E6%9D%B1%E9%A4%A8%E5%B1%B1.png"
@@ -846,6 +934,11 @@ function buildMatrix(priceData) {
         }
     });
 </script>
+<!-- 2. 彈出視窗 (Modal) 結構 -->
+<div id="imageModal" class="modal" onclick="closeModal(event)">
+    <span class="close-btn" onclick="closeModal(event)">&times;</span>
+    <img class="modal-content" id="modalImg">
+</div>
 
 </body>
 </html>
