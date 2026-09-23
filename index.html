@@ -908,12 +908,21 @@
         document.getElementById('gallery-title').innerText = data.title;
         const galleryContainer = document.getElementById('gallery-container');
         galleryContainer.innerHTML = ''; 
-        data.images.forEach(imgUrl => {
-            const imgElement = document.createElement('img');
-            imgElement.src = imgUrl;
-            imgElement.alt = data.title + " 雪道圖";
-            galleryContainer.appendChild(imgElement);
-        });
+data.images.forEach(imgUrl => {
+    const imgElement = document.createElement('img');
+    imgElement.src = imgUrl;
+    imgElement.alt = data.title + " 雪道圖";
+    
+    // 👇 新增這幾行來綁定點擊放大事件
+    imgElement.style.cursor = "pointer";
+    imgElement.style.transition = "0.3s";
+    imgElement.onclick = function() { openModal(this.src); };
+    imgElement.onmouseover = function() { this.style.opacity = '0.8'; };
+    imgElement.onmouseout = function() { this.style.opacity = '1'; };
+    // 👆
+
+    galleryContainer.appendChild(imgElement);
+});
     }
 
     document.querySelectorAll('.map-node').forEach(node => {
