@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+    >
+
+```
+<title>Shiga Kogen Shuttle Bus Timetable</title>
+
+<style>
+    * {
+        box-sizing: border-box;
+    }
+
+    html,
+    body {
+        margin: 0;
+        padding: 0;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        background: #525659;
+    }
+
+    .viewer {
+        width: 100%;
+        height: 100dvh;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .toolbar {
+        height: 52px;
+        min-height: 52px;
+        background: #333;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 10px;
+        color: #fff;
+        font-family: Arial, sans-serif;
+    }
+
+    .toolbar-title {
+        font-size: 14px;
+        font-weight: bold;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        margin-right: 10px;
+    }
+
+    .toolbar-button {
+        border: none;
+        background: #f06d06;
+        color: #fff;
+        padding: 7px 12px;
+        border-radius: 5px;
+        font-size: 13px;
+        cursor: pointer;
+        white-space: nowrap;
+    }
+
+    .toolbar-button:active {
+        opacity: 0.8;
+    }
+
+    .pdf-container {
+        flex: 1;
+        width: 100%;
+        min-height: 0;
+        background: #525659;
+    }
+
+    .pdf-frame {
+        width: 100%;
+        height: 100%;
+        border: none;
+        display: block;
+    }
+
+    .fallback {
+        display: none;
+        height: 100%;
+        padding: 30px 20px;
+        text-align: center;
+        color: #fff;
+        font-family: Arial, sans-serif;
+    }
+
+    .fallback a {
+        display: inline-block;
+        margin-top: 15px;
+        padding: 10px 18px;
+        background: #f06d06;
+        color: #fff;
+        text-decoration: none;
+        border-radius: 5px;
+    }
+
+    @media (max-width: 600px) {
+
+        .toolbar {
+            height: 48px;
+            min-height: 48px;
+            padding: 0 8px;
+        }
+
+        .toolbar-title {
+            font-size: 12px;
+        }
+
+        .toolbar-button {
+            padding: 6px 9px;
+            font-size: 12px;
+        }
+    }
+</style>
+```
+
+</head>
+
+<body>
+
+<div class="viewer">
+
+```
+<div class="toolbar">
+
+    <div class="toolbar-title">
+        志賀高原 Shuttle Bus Timetable
+    </div>
+
+    <button
+        class="toolbar-button"
+        onclick="openPDF()"
+    >
+        ↗ 開啟 PDF
+    </button>
+
+</div>
+
+<div class="pdf-container">
+
+    <iframe
+        id="pdfFrame"
+        class="pdf-frame"
+        src="./shuttle_bus.pdf"
+        title="Shiga Kogen Shuttle Bus Timetable"
+    ></iframe>
+
+    <div
+        id="fallback"
+        class="fallback"
+    >
+        <div>
+            <h3>PDF 無法在此瀏覽器內嵌顯示</h3>
+
+            <p>
+                請點擊下方按鈕開啟官方 PDF。
+            </p>
+
+            <a
+                href="./shuttle_bus.pdf"
+                target="_blank"
+                rel="noopener noreferrer"
+            >
+                開啟 / 下載 PDF
+            </a>
+        </div>
+    </div>
+
+</div>
+```
+
+</div>
+
+<script>
+
+function openPDF() {
+    window.open(
+        "./shuttle_bus.pdf",
+        "_blank",
+        "noopener,noreferrer"
+    );
+}
+
+</script>
+
+</body>
+</html>
