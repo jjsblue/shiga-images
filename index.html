@@ -29,11 +29,15 @@
     /* 主導航框架 (Tab 系統) */
     .main-nav {
         width: 100%;
-        background: var(--primary-color);
+        background: linear-gradient(180deg, #2f6091 0%, #2f8394 100%);
         position: sticky;
         top: 0;
         z-index: 1000;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    /* 讓左下與右下呈現導圓角（可依喜好調整數值，如 16px ~ 25px） */
+        border-radius: 0 0 112px 112px;
+    /* 避免內部項目或背景溢出圓角範圍 */
+        overflow: hidden;
     }
     .nav-tabs {
         display: flex;
@@ -303,11 +307,11 @@
 
 <nav class="main-nav">
     <ul class="nav-tabs">
-        <li class="nav-item" onclick="switchMainTab('flights')">✈️ 出入境資訊</li>
-        <li class="nav-item active" onclick="switchMainTab('trailmap')">🗺️ 雪道地圖</li>
-        <li class="nav-item" onclick="switchMainTab('hotels')">🏨 旅館資訊</li>
-        <li class="nav-item" onclick="switchMainTab('tickets')">🎫 雪票價格</li>
-        <li class="nav-item" onclick="switchMainTab('transport')">🚌 交通資訊</li>
+        <li class="nav-item" data-tab="flights" onclick="switchMainTab('flights')">✈️ 出入境資訊</li>
+        <li class="nav-item" data-tab="trailmap" onclick="switchMainTab('trailmap')">🗺️ 雪道地圖</li>
+        <li class="nav-item" data-tab="hotels" onclick="switchMainTab('hotels')">🏨 旅館資訊</li>
+        <li class="nav-item" data-tab="tickets" onclick="switchMainTab('tickets')">🎫 雪票價格</li>
+        <li class="nav-item" data-tab="transport" onclick="switchMainTab('transport')">🚌 交通資訊</li>
     </ul>
 </nav>
 
@@ -315,23 +319,23 @@
     
     
     <div id="flights" class="tab-content">
-        <div style="text-align: center;">
+                <div style="text-align: center;">
             <div class="info-card"style="background-color: #c2f3ff;">
             <h2 style="margin-top:0;"> <a href="https://services.digital.go.jp/zh-cmn-hant/visit-japan-web/" target="_blank" rel="noopener noreferrer" style="color:inherit; text-decoration:underline;">日本入境網站VJW🔗 </a></h2>
            <p style="font-size: 0.9em; color: #666"> 行動電源攜帶上限2顆 / 出發前填寫VJW，並把 QR Code 截圖保存到手機裡加速通關
          </p>
            </div>
-           <div class="info-card"style="background-color: #e0c2ff;">
+           <div class="info-card"style="background-color: #9ccdd9;">
            <h2 style="margin-top:0;">日本退稅新制</h2>
 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px; margin-top: 20px;">
     <!-- 加上 cursor: pointer 讓滑鼠移過去變手指，onclick 觸發放大功能 -->
-    <img src="https://github.com/jjsblue/shiga-images/blob/main/taxrefund.jpg?raw=true" 
+    <img src="https://github.com/jjsblue/shiga-images/blob/main/taxrefund_1103.jpg?raw=true" 
          alt="日本退稅新制" 
          style="width: 100%; height: 100%; object-fit: cover; border-radius: 8px; cursor: pointer; transition: 0.3s;" 
          onclick="openModal(this.src)"
          onmouseover="this.style.opacity='0.8'" 
          onmouseout="this.style.opacity='1'">
-</div>                            
+</div> 
            </div> 
            </div>
       <!--
@@ -351,13 +355,13 @@
         <div class="info-card">
             <h2>✈️ 航空公司預估票價區間 (非具體日期)</h2>
             <p>如需選擇特定航空公司，請參考以下平時觀測之價格區間：</p>
-            <table>
+            <le>
                 <tr><th>航空公司</th><th>服務類型</th><th>預估票價 (來回)</th><th>備註</th></tr>
                 <tr><td>中華航空 / 長榮航空</td><td>傳統航空</td><td>NT$ 15,000+</td><td>含行李、餐飲</td></tr>
                 <tr><td>日本航空 (JAL)</td><td>傳統航空</td><td>NT$ 14,775+</td><td>服務口碑極佳</td></tr>
                 <tr><td>星宇航空</td><td>精品航空</td><td>NT$ 16,500+</td><td>硬體設備新穎</td></tr>
                 <tr><td>樂桃 / 酷航 / 捷星</td><td>廉價航空 (LCC)</td><td>NT$ 7,000 - 9,500</td><td>行李與餐飲需另購</td></tr>
-            </table>-->
+            </le>-->
         </div>
     </div>
 
@@ -608,15 +612,52 @@
 </div>
 
 <script>
+// ==========================================
+    // 1. Tab 切換功能（支援網址 Hash 與分享）
     // ==========================================
-    // 1. Tab 切換功能
-    // ==========================================
-    function switchMainTab(tabId) {
+    const VALID_TABS = ['flights', 'trailmap', 'hotels', 'tickets', 'transport'];
+    const DEFAULT_TAB = 'trailmap'; // 預設首頁分頁（雪道地圖）
+
+    function switchMainTab(tabId, updateHash = true) {
+        if (!VALID_TABS.includes(tabId)) {
+            tabId = DEFAULT_TAB;
+        }
+
+        // 1. 切換分頁內容顯示
         document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
-        document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
-        document.getElementById(tabId).classList.add('active');
-        event.currentTarget.classList.add('active');
+        const targetContent = document.getElementById(tabId);
+        if (targetContent) {
+            targetContent.classList.add('active');
+        }
+
+        // 2. 切換上方按鈕 active 樣式
+        document.querySelectorAll('.nav-item').forEach(item => {
+            if (item.getAttribute('data-tab') === tabId) {
+                item.classList.add('active');
+            } else {
+                item.classList.remove('active');
+            }
+        });
+
+        // 3. 更新網址列 Hash（不引起畫面重跳）
+        if (updateHash) {
+            history.replaceState(null, '', `#${tabId}`);
+        }
     }
+
+    function initTabFromHash() {
+        const hash = window.location.hash.replace('#', '');
+        switchMainTab(hash || DEFAULT_TAB, false);
+    }
+
+    // 網頁初次載入時根據網址 Hash 開啟對應分頁
+    window.addEventListener('DOMContentLoaded', initTabFromHash);
+
+    // 點擊瀏覽器上一頁/下一頁時同步切換分頁
+    window.addEventListener('popstate', () => {
+        const hash = window.location.hash.replace('#', '');
+        switchMainTab(hash || DEFAULT_TAB, false);
+    });
 // ==========================================
     // 2. 機票矩陣生成與智慧搜尋 (先顯示資訊，再確認跳轉)
     // ==========================================
