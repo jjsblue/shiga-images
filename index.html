@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>2027 志賀高原滑雪攻略手冊</title>
+    <link rel="icon" href="https://github.com/jjsblue/shiga-images/blob/main/favicon.png?raw=true">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <style>
     :root {
@@ -310,7 +311,7 @@
         <li class="nav-item" data-tab="flights" onclick="switchMainTab('flights')">✈️ 出入境資訊</li>
         <li class="nav-item" data-tab="trailmap" onclick="switchMainTab('trailmap')">🗺️ 雪道地圖</li>
         <li class="nav-item" data-tab="hotels" onclick="switchMainTab('hotels')">🏨 旅館資訊</li>
-        <li class="nav-item" data-tab="tickets" onclick="switchMainTab('tickets')">🎫 雪票價格</li>
+        <li class="nav-item" data-tab="tickets" onclick="switchMainTab('tickets')">🎫 雪票購買</li>
         <li class="nav-item" data-tab="transport" onclick="switchMainTab('transport')">🚌 交通資訊</li>
     </ul>
 </nav>
@@ -504,6 +505,7 @@
                         🎫 志賀高原全山共通卷 11/1開賣
                     </a>
                 </h2>
+<div style="background:#e8f4fd; padding:15px; border-radius:8px; margin-bottom:15px; border-left: 5px solid #3498db;">
                 <span style="font-size: 0.85em; color: #666;"> 志賀26-27全山雪票購買說明 (SKIOSK為自助售票機) </span><br>  
                 <span style="font-size: 0.85em; color: #666;">（註：如不會離開中央區雪場，全山券並不划算，可參考下方中央雪券）</span>
                 
@@ -572,7 +574,7 @@
          onmouseover="this.style.opacity='0.8'" 
          onmouseout="this.style.opacity='1'">
 </div>
-
+</div>
 <hr style="border: 0; height: 1px; background: #eee; margin: 35px 0;">
                 <!-- 中央區雪券區塊 -->
                 <h2>
@@ -580,6 +582,7 @@
                         🎫 志賀高原中央區雪券
                     </a>
                 </h2>
+<div style="background:#e8f4fd; padding:15px; border-radius:8px; margin-bottom:15px; border-left: 5px solid #3498db;">
                 <span style="font-size: 0.85em; color: #666;">（註：如果預計坐很少趟纜車，可以當天再買點數券）</span>  
                 <div style="display: flex; justify-content: center;">
                             <a href="https://jp.wamazing.com/snow/resorts/shiga-kogen-chuo/partner_ec/items?utm_medium=referral&utm_source=shiga-kogen-chuo&utm_campaign=ec" 
@@ -596,6 +599,7 @@
                          onclick="openModal(this.src)"
                          onmouseover="this.style.opacity='0.8'" 
                          onmouseout="this.style.opacity='1'">
+</div>
                 </div>            
             </div>
         </div>
@@ -605,53 +609,37 @@
     <div id="transport" class="tab-content">
         <div class="info-card">
             <div style="text-align: center;">
-            <h2>🚌 聯外與區內交通</h2>
+            <h2>🚌 聯外交通</h2>
                 </div>
-<div style="background:#f2e8fd; padding:15px; border-radius:8px; margin-bottom:15px; border-left: 5px solid #7c34db;">
-                <strong>Snowliner（東京成田/東京羽田 ↔ 長野站）：</strong> 搭乘「Snowliner」前往志賀高原，車程約 5.5-6 小時，單程費用約為 14,000 至 18,000 日圓，免費攜帶行李箱*1+雪板行李袋*1，額外行李價格每件 1,500 日圓。</br> <span style="font-size: 0.85em; color: #666;">（註：班次偏少，具體要在雪季開始前才會公告）</span>
-  </div>
 
 <div style="background:#e8f4fd; padding:15px; border-radius:8px; margin-bottom:15px; border-left: 5px solid #3498db;">
-                <strong>北陸新幹線（東京/上野 ↔ 長野站）：</strong> 搭乘「北陸新幹線」前往長野站，車程約 90-110 分鐘，單程費用約為 8,000 至 9,000 日圓。
+                <strong>北陸新幹線（東京/上野 ↔ 長野站）：</strong> 搭乘「北陸新幹線」前往長野站，單程費用約為 8,000 至 9,000 日圓。
+  <img src="https://github.com/jjsblue/shiga-images/blob/main/SHINKANSEN.jpg?raw=true" 
+                         alt="26-27北路新幹線時刻表" 
+                         style="width: 100%; height: 100%; object-fit: cover; border-radius: 8px; cursor: pointer; transition: 0.3s;" 
+                         onclick="openModal(this.src)"
+                         onmouseover="this.style.opacity='0.8'" 
+                         onmouseout="this.style.opacity='1'">
   </div>
             <div style="background:#e8f4fd; padding:15px; border-radius:8px; margin-bottom:15px; border-left: 5px solid #3498db;">
     <div style="margin-bottom: 10px;">
-        <strong>長野站 ➔ 志賀高原：</strong> 搭乘「長電雪猴/志賀高原特快巴士」，車程約 70-90 分鐘，單程票價約 2,500~3,000 JPY。於長野站東口上車。
+       <strong><a href="https://www.shigakogen.gr.jp/manage/wp-content/uploads/2026/11/26-27-EXP_Timetables.jpg" target="_blank" rel="noopener noreferrer">長野站 ↔ 志賀高原🔗</a>：</strong>搭乘「長電雪猴/志賀高原特快巴士」，週末及國定假日車上全面實施「無現金支付」（可刷信用卡、交通IC卡、PayPay等）；若要付現，須提前至長野站東口1樓長店巴士售票處「あるよ(Aruyo)」購買紙本車票。
+       <img src="https://github.com/jjsblue/shiga-images/blob/main/BUS_SHIGA_BUS.jpg?raw=true" 
+                         alt="26-27志賀巴士時刻表" 
+                         style="width: 100%; height: 100%; object-fit: cover; border-radius: 8px; cursor: pointer; transition: 0.3s;" 
+                         onclick="openModal(this.src)"
+                         onmouseover="this.style.opacity='0.8'" 
+                         onmouseout="this.style.opacity='1'">
     </div>
-    
-    <hr style="border: 0; height: 1px; background: #b9d7f0; margin: 15px 0;">
-    
-    <div style="text-align: center; line-height: 1.8;">
-        <strong style="color: #2980b9; font-size: 1.1em;">【去程】長野站東口 ➔ 志賀高原山之站</strong><br>
-        08:15 發車 ➔ 09:35 抵達 </br><span style="font-size: 0.85em; color: #666;">（註：限週末/假日行駛，適用 2025/12/20~2026/3/21 每週六，及 2/11、3/20）</span><br>
-        09:10 發車 ➔ 10:32 抵達<br>
-        10:40 發車 ➔ 12:07 抵達<br>
-        11:15 發車 ➔ 12:42 抵達<br>
-        13:10 發車 ➔ 14:37 抵達<br>
-        14:30 發車 ➔ 15:57 抵達<br>
-        17:05 發車 ➔ 18:32 抵達<br>
-        21:00 發車 ➔ 22:11 抵達 </br><span style="font-size: 0.85em; color: #666;">（註：夜間預約制「Weekend 志賀」，限 2026/1/9~3/13 每週五，及 3/19 行駛）</span><br>
-        
-        <br>
-        
-        <strong style="color: #2980b9; font-size: 1.1em;">【回程】志賀高原山之站 ➔ 長野站東口</strong><br>
-        08:25 發車 ➔ 09:45 抵達<br>
-        10:30 發車 ➔ 12:15 抵達<br>
-        13:35 發車 ➔ 15:20 抵達<br>
-        14:35 發車 ➔ 16:20 抵達<br>
-        15:35 發車 ➔ 17:20 抵達<br>
-        16:05 發車 ➔ 17:50 抵達<br>
-        17:00 發車 ➔ 18:45 抵達<br>
-        18:20 發車 ➔ 20:05 抵達<br>
-    </div>
+
 </div>
-            <div style="background:#fef9e7; padding:15px; border-radius:8px; border-left: 5px solid #f1c40f;">
-                <strong>區內移動：</strong> 持有有效雪票者可「免費」搭乘志賀高原區內接駁巴士 (Shuttle Bus)。<br><br>
-                ⚠️ <strong>注意：</strong> 雪場旅館來回橫手山/熊之湯 (第四區) 都必須搭接駁巴士在 山の駅 轉車，請務必留意轉乘時間以免回不了飯店！
-              <div class="info-card" style="margin-bottom: 25px;">            
-                  <div style="text-align: center;">
+                            <div style="text-align: center;">
     <h2>🚌 區內接駁車時刻表 (Shuttle Bus)</h2>
-    <span style="font-size: 0.85em; color: #666;">（冬季期間行駛，持有效雪票可免費搭乘指定區間）</span></div>
+    </div>
+            <div style="background:#fef9e7; padding:15px; border-radius:8px; border-left: 5px solid #f1c40f;">
+                持有有效雪票者可「免費」搭乘志賀高原區內接駁巴士 (Shuttle Bus)。<br><br>
+                ⚠️ <strong>注意：</strong> 雪場旅館來回橫手山/熊之湯 (第四區) 都必須搭接駁巴士在 山の駅 轉車，請務必留意轉乘時間以免回不了飯店！</div>          
+
 
     <div style="margin-top: 15px; text-align: left; background: #f4f7f6; padding: 15px; border-radius: 8px; border-left: 5px solid #f06d06;">
         <p style="margin: 0 0 10px 0; color: #333; font-size: 0.95em; line-height: 1.6;">
