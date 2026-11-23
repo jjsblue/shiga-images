@@ -1,0 +1,35 @@
+{
+  "night_ski": [
+    "無"
+  ],
+  "yakebitai": {
+    "icon": "❄️",
+    "temp": "--°C",
+    "wind": "-- m/s",
+    "snow": "-- cm"
+  },
+  "ichinose": {
+    "icon": "❄️",
+    "temp": "--°C",
+    "wind": "-- m/s",
+    "snow": "-- cm"
+  },
+  "hasuike": {
+    "icon": "❄️",
+    "temp": "--°C",
+    "wind": "-- m/s",
+    "snow": "-- cm"
+  },
+  "yokoteyama": {
+    "icon": "❄️",
+    "temp": "--°C",
+    "wind": "-- m/s",
+    "snow": "-- cm"
+  },
+  "lift_status": {
+    "第一區": [],
+    "第二區": [],
+    "第三區": [],
+    "第四區": []
+  }
+}
