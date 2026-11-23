@@ -27,44 +27,98 @@
         align-items: center;
     }
 
-    /* 主導航框架 (Tab 系統) */
+    /* 主導航框架 (支援電腦版橫排 + 手機版點擊展開/收合) */
+.main-nav {
+    width: 100%;
+    background: linear-gradient(180deg, #1e5696 0%, #4dafe8 100%);
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.18);
+    border-radius: 0 0 20px 20px; /* 呼應你截圖中的圓弧底部造型 */
+    transition: all 0.3s ease;
+}
+
+.nav-tabs {
+    display: flex;
+    justify-content: center;
+    max-width: 1000px;
+    margin: 0 auto;
+    list-style: none;
+    padding: 0;
+    flex-wrap: wrap;
+}
+
+.nav-item {
+    padding: 15px 20px;
+    color: #cbd5e1;
+    cursor: pointer;
+    font-weight: bold;
+    transition: all 0.25s;
+    border-bottom: 4px solid transparent;
+    white-space: nowrap;
+}
+
+.nav-item:hover { color: white; }
+
+.nav-item.active {
+    color: white;
+    border-bottom: 4px solid #38bdf8;
+    background: rgba(255,255,255,0.12);
+}
+
+/* 📱 手機版專屬：預設只顯示當前頁籤，點擊整塊頂部再往下彈出全部頁籤 */
+@media (max-width: 768px) {
     .main-nav {
-        width: 100%;
-        background: linear-gradient(180deg, #2f6091 0%, #2f8394 100%);
-        position: sticky;
-        top: 0;
-        z-index: 1000;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-    /* 讓左下與右下呈現導圓角（可依喜好調整數值，如 16px ~ 25px） */
-        border-radius: 0 0 112px 112px;
-    /* 避免內部項目或背景溢出圓角範圍 */
-        overflow: hidden;
-    }
-    .nav-tabs {
-        display: flex;
-        justify-content: center;
-        max-width: 1000px;
-        margin: 0 auto;
-        list-style: none;
-        padding: 0;
-        flex-wrap: wrap;
-    }
-    .nav-item {
-        padding: 15px 20px;
-        color: #bdc3c7;
-        cursor: pointer;
-        font-weight: bold;
-        transition: all 0.3s;
-        border-bottom: 4px solid transparent;
-        white-space: nowrap;
-    }
-    .nav-item:hover { color: white; }
-    .nav-item.active {
-        color: white;
-        border-bottom: 4px solid var(--secondary-color);
-        background: rgba(255,255,255,0.1);
+        padding: 4px 0;
     }
 
+    /* 未展開狀態：只顯示 active 的那一顆頁籤 */
+    .main-nav:not(.nav-expanded) .nav-item {
+        display: none;
+    }
+
+    .main-nav:not(.nav-expanded) .nav-item.active {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        padding: 12px 16px;
+        font-size: 1.05em;
+        border-bottom: none;
+        background: transparent;
+    }
+
+    /* 在收合狀態的當前頁籤右側加上「▼ 切換分頁」小提示 */
+    .main-nav:not(.nav-expanded) .nav-item.active::after {
+        content: "  ▼";
+        font-size: 0.75em;
+        margin-left: 8px;
+        opacity: 0.85;
+    }
+
+    /* 點擊展開後的狀態：2 欄整齊排列全部頁籤 */
+    .main-nav.nav-expanded .nav-tabs {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        padding: 8px 12px 14px 12px;
+        gap: 6px;
+    }
+
+    .main-nav.nav-expanded .nav-item {
+        display: block;
+        text-align: center;
+        padding: 11px 8px;
+        border-radius: 10px;
+        border-bottom: none;
+        font-size: 0.95em;
+    }
+
+    .main-nav.nav-expanded .nav-item.active {
+        background: rgba(255, 255, 255, 0.2);
+        border: 1px solid rgba(255, 255, 255, 0.4);
+    }
+}
     .container {
         max-width: 1000px;
         width: 95%;
@@ -1022,12 +1076,24 @@
 // ==========================================
     // 1. Tab 切換功能（支援網址 Hash 與分享）
     // ==========================================
-    const VALID_TABS = ['weather','flights', 'trailmap', 'hotels', 'tickets', 'transport'];
+const VALID_TABS = ['weather', 'flights', 'trailmap', 'hotels', 'tickets', 'transport'];
     const DEFAULT_TAB = 'weather'; // 預設首頁分頁
 
     function switchMainTab(tabId, updateHash = true) {
         if (!VALID_TABS.includes(tabId)) {
             tabId = DEFAULT_TAB;
+        }
+
+        const nav = document.querySelector('.main-nav');
+        const isMobile = window.innerWidth <= 768;
+
+        // 手機版邏輯：若是主動點擊(updateHash=true)、選單目前為收合狀態，且點擊的是「當前已啟用」的頁籤 -> 展開全部選單
+        if (isMobile && updateHash && nav && !nav.classList.contains('nav-expanded')) {
+            const currentActive = document.querySelector(`.nav-item[data-tab="${tabId}"].active`);
+            if (currentActive) {
+                nav.classList.add('nav-expanded');
+                return;
+            }
         }
 
         // 1. 切換分頁內容顯示
@@ -1046,11 +1112,30 @@
             }
         });
 
-        // 3. 更新網址列 Hash（不引起畫面重跳）
+        // 3. 選完分頁後，自動收合手機版選單
+        if (nav) {
+            nav.classList.remove('nav-expanded');
+        }
+
+        // 4. 更新網址列 Hash（不引起畫面重跳）
         if (updateHash) {
             history.replaceState(null, '', `#${tabId}`);
         }
     }
+
+    // 手機版：點擊頂部藍綠色區域空白處可切換展開/收合；點擊頁面其他處則自動收合
+    document.addEventListener('click', function(e) {
+        const nav = document.querySelector('.main-nav');
+        if (!nav || window.innerWidth > 768) return;
+
+        if (nav.contains(e.target)) {
+            if (!e.target.closest('.nav-item')) {
+                nav.classList.toggle('nav-expanded');
+            }
+        } else {
+            nav.classList.remove('nav-expanded');
+        }
+    });
 
     function initTabFromHash() {
         const hash = window.location.hash.replace('#', '');
