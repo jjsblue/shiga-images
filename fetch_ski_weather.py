@@ -58,16 +58,6 @@ def map_weather_icon(text):
     return "🏔️"
 
 
-def normalize_lift_status(raw_text):
-    if any(k in raw_text for k in ["運行中", "営業中", "○", "運転中"]):
-        return "運行中"
-    if any(k in raw_text for k in ["見合わせ", "強風", "天候", "調整中", "準備中"]):
-        return "天候暫停"
-    if any(k in raw_text for k in ["運休", "終了", "×", "休止", "期間外"]):
-        return "運行休止"
-    return raw_text.strip()[:10] if raw_text.strip() else "運行休止"
-
-
 def fetch_with_browser():
     JST = timezone(timedelta(hours=9))
     now_str = datetime.now(JST).strftime("%Y-%m-%d %H:%M JST")
@@ -99,7 +89,7 @@ def fetch_with_browser():
                 )
             )
             page.goto(URL, wait_until="networkidle", timeout=30000)
-            page.wait_for_timeout(4000)  # 等待前端 JS 完整渲染所有雪場卡片
+            page.wait_for_timeout(4000)
             html_content = page.content()
             browser.close()
     except Exception as e:
@@ -107,7 +97,6 @@ def fetch_with_browser():
         return result
 
     soup = BeautifulSoup(html_content, "html.parser")
-    # 移除導覽列與頁尾干擾
     for tag in soup.find_all(["nav", "header", "footer"]):
         tag.decompose()
 
@@ -116,11 +105,10 @@ def fetch_with_browser():
 
     for block in blocks:
         text = block.get_text(" ", strip=True)
-        # 鎖定單一雪場區塊的合理文字長度
-        if len(text) < 15 or len(text) > 2500:
+        if len(text) < 15 or len(text) > 3500:
             continue
 
-        # 1. 解析四大代表卡片氣象 (支援: 天気 weather 晴れ / 気温 temperature -5°C / 積雪 snowfall 15cm)
+        # 1. 解析四大代表卡片氣象
         for key, keywords in WEATHER_SPOTS.items():
             if any(kw in text for kw in keywords) and result[key]["temp"] == "--°C":
                 if "気温" in text or "積雪" in text or "天気" in text:
@@ -150,7 +138,7 @@ def fetch_with_browser():
                     if m_snow:
                         result[key]["snow"] = f"{m_snow.group(1)} cm"
 
-        # 2. 解析全區 1-4 區夜滑與纜車列表
+        # 2. 解析全區 1-4 區夜滑與纜車列表 (針對截圖的「編號 + 纜車名 + 運行中/運休中」結構)
         for zone_name, resorts in ZONE_RESORTS.items():
             for resort in resorts:
                 if any(kw in text for kw in resort["keywords"]):
@@ -165,34 +153,37 @@ def fetch_with_browser():
                             if resort["name"] not in open_night_spots:
                                 open_night_spots.append(resort["name"])
 
-                    # 纜車列表解析
-                    for tr in block.find_all("tr"):
-                        cells = [
-                            c.get_text(" ", strip=True)
-                            for c in tr.find_all(["th", "td"])
-                            if c.get_text(strip=True)
-                        ]
-                        if len(cells) >= 2:
-                            lift_name = cells[0]
-                            raw_status = " ".join(cells[1:])
-                            if any(
-                                k in lift_name
-                                for k in [
-                                    "リフト",
-                                    "ゴンドラ",
-                                    "ペア",
-                                    "トリプル",
-                                    "クワッド",
-                                    "スカイレーター",
-                                ]
-                            ):
-                                entry = {
-                                    "resort": resort["name"],
-                                    "lift": lift_name,
-                                    "status": normalize_lift_status(raw_status),
-                                }
-                                if entry not in result["lift_status"][zone_name]:
-                                    result["lift_status"][zone_name].append(entry)
+                    # 掃描該區塊內每一行包含「運行中 / 運休中 / 見合わせ」的元素 (支援 div, li, tr, dl)
+                    for row in block.find_all(["div", "li", "tr", "dl"]):
+                        row_text = row.get_text(" ", strip=True)
+                        # 確保是單條纜車列 (文字不會太長，且帶有運行狀態字眼)
+                        if 6 < len(row_text) < 140 and any(
+                            st in row_text for st in ["運行中", "運休中", "見合わせ", "準備中"]
+                        ):
+                            # 擷取纜車名稱 (去除開頭數字編號如 "67 "，並取到英文或狀態詞之前)
+                            m_lift = re.match(
+                                r"^(?:\d+\s+)?([^\sA-Za-z○×]+)", row_text
+                            )
+                            if m_lift:
+                                lift_name = m_lift.group(1).strip()
+                                # 排除非纜車名稱的誤判
+                                if len(lift_name) >= 2 and not any(
+                                    bad in lift_name for bad in ["運行", "運休", "最終更新", "天気", "気温", "積雪"]
+                                ):
+                                    if "運行中" in row_text:
+                                        status_zh = "運行中"
+                                    elif "見合わせ" in row_text or "準備中" in row_text:
+                                        status_zh = "天候暫停"
+                                    else:
+                                        status_zh = "運行休止"
+
+                                    entry = {
+                                        "resort": resort["name"],
+                                        "lift": lift_name,
+                                        "status": status_zh,
+                                    }
+                                    if entry not in result["lift_status"][zone_name]:
+                                        result["lift_status"][zone_name].append(entry)
 
     if open_night_spots:
         result["night_ski"] = open_night_spots
