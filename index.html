@@ -776,12 +776,37 @@
     .weather-icon { font-size: 1.25em; }
     .snow-highlight { color: #0284c7; font-size: 1.15em; font-weight: 800; }
 
-    @media (max-width: 600px) {
-        .weather-status-banner { flex-direction: column; padding: 12px; }
-        .banner-divider { width: 80%; height: 1.5px; }
-        .weather-cards-grid { grid-template-columns: 1fr; }
-        .lift-zone-group { flex-direction: column; gap: 6px; }
+@media (max-width: 600px) {
+    .weather-status-banner { flex-direction: column; padding: 12px; }
+    .banner-divider { width: 80%; height: 1.5px; }
+    .lift-zone-group { flex-direction: column; gap: 6px; }
+    
+    /* 縮小外層留白，讓雙欄卡片有更充裕的寬度 */
+    #weather .info-card { padding: 16px 10px; }
+    
+    /* 強制手機版維持一排 2 張卡片 */
+    .weather-cards-grid { 
+        grid-template-columns: repeat(2, minmax(0, 1fr)); 
+        gap: 8px; 
     }
+    .weather-spot-card { 
+        padding: 12px 8px 10px 8px; 
+        min-width: 0; 
+    }
+    .weather-spot-card::after { 
+        content: "雪道圖 ↗"; 
+        top: 5px; 
+        right: 6px; 
+        font-size: 0.62em; 
+    }
+    .spot-header { margin-top: 8px; margin-bottom: 8px; padding-bottom: 6px; }
+    .spot-name { font-size: 1.05em; }
+    .spot-zone { font-size: 0.72em; }
+    .spot-metrics { gap: 6px; padding: 0 2px; }
+    .metric-row { font-size: 0.85em; }
+    .weather-icon { font-size: 1em; }
+    .snow-highlight { font-size: 0.95em; }
+}
 </style>
 
     <div id="flights" class="tab-content">
