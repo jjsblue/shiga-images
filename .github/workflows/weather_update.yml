@@ -40,7 +40,7 @@ jobs:
         run: |
           python fetch_ski_weather.py
 
-      # 5. 檢查檔案是否有更新，若有則自動 Commit & Push
+     # 5. 檢查檔案是否有更新，若有則先同步遠端最新版本再推送
       - name: Commit and push updated JSON
         run: |
           git config --global user.name "github-actions[bot]"
@@ -50,5 +50,6 @@ jobs:
             echo "雪況與纜車資料無變更，跳過推送"
           else
             git commit -m "chore: 自動更新志賀高原雪場天氣與纜車狀態 [skip ci]"
-            git push
+            git pull --rebase origin main
+            git push origin main
           fi
