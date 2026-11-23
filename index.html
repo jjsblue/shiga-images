@@ -99,7 +99,57 @@
     }
     th { background: #f8f9fa; color: var(--primary-color); }
     .price-tag { color: #e74c3c; font-weight: bold; font-size: 1.1em; }
+/* 四張卡片的共用基礎樣式 */
+.weather-spot-card {
+    border: 2px solid #e2e8f0;
+    border-radius: 14px;
+    padding: 18px 20px;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    position: relative;
+}
 
+.weather-spot-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.12);
+}
+
+/* 第 1 張卡片：燒額山（第一區 - 清爽天空藍漸層） */
+.weather-cards-grid .weather-spot-card:nth-child(1) {
+    background: linear-gradient(180deg, #ffffff 0%, #ffffff 45%, #bae6fd 100%);
+    border-color: #7dd3fc;
+}
+.weather-cards-grid .weather-spot-card:nth-child(1):hover {
+    border-color: #3498db;
+}
+
+/* 第 2 張卡片：一之瀨（第二區 - 溫暖夕陽橘漸層） */
+.weather-cards-grid .weather-spot-card:nth-child(2) {
+    background: linear-gradient(180deg, #ffffff 0%, #ffffff 45%, #fed7aa 100%);
+    border-color: #fdba74;
+}
+.weather-cards-grid .weather-spot-card:nth-child(2):hover {
+    border-color: #e67e22;
+}
+
+/* 第 3 張卡片：蓮池（第三區 - 森林薄荷綠漸層） */
+.weather-cards-grid .weather-spot-card:nth-child(3) {
+    background: linear-gradient(180deg, #ffffff 0%, #ffffff 45%, #bbf7d0 100%);
+    border-color: #86efac;
+}
+.weather-cards-grid .weather-spot-card:nth-child(3):hover {
+    border-color: #2ecc71;
+}
+
+/* 第 4 張卡片：橫手山（第四區 - 雲海薰衣草紫漸層） */
+.weather-cards-grid .weather-spot-card:nth-child(4) {
+    background: linear-gradient(180deg, #ffffff 0%, #ffffff 45%, #e9d5ff 100%);
+    border-color: #d8b4fe;
+}
+.weather-cards-grid .weather-spot-card:nth-child(4):hover {
+    border-color: #9b59b6;
+}
     /* 雪道地圖樣式 */
     .map-container {
         position: relative;
@@ -308,6 +358,7 @@
 
 <nav class="main-nav">
     <ul class="nav-tabs">
+        <li class="nav-item" data-tab="weather" onclick="switchMainTab('weather')">🌤️ 雪場天氣</li>
         <li class="nav-item" data-tab="flights" onclick="switchMainTab('flights')">✈️ 出入境資訊</li>
         <li class="nav-item" data-tab="trailmap" onclick="switchMainTab('trailmap')">🗺️ 雪道地圖</li>
         <li class="nav-item" data-tab="hotels" onclick="switchMainTab('hotels')">🏨 旅館資訊</li>
@@ -316,9 +367,307 @@
     </ul>
 </nav>
 
+
 <div class="container">
-    
-    
+ 
+<!-- 🌤️ 雪場天氣與纜車運行狀況分頁 -->
+<div id="weather" class="tab-content">
+    <div class="info-card" style="max-width: 850px; margin: 0 auto;">
+        
+        <!-- 頂部標題 -->
+        <div style="text-align: center; margin-bottom: 16px;">
+            <h2 style="margin: 0 0 6px 0; color: #1e293b; font-size: 1.6em;">❄️ 志賀高原雪場天氣</h2>
+            <p style="margin: 0; color: #e74c3c; font-size: 0.9em; font-weight: bold;">
+                ＊點擊下方雪場面板可連結至雪道地圖
+            </p>
+        </div>
+
+        <!-- 1. 真實時間 & 本日夜滑開放橫幅 -->
+        <div class="weather-status-banner">
+            <div class="banner-time">
+                <span class="year" id="weather-year">----年</span>
+                <span class="datetime" id="weather-update-time">載入時間中...</span>
+            </div>
+            <div class="banner-divider"></div>
+            <div class="banner-night-ski">
+                <div class="night-title">🌙 本日夜滑開放</div>
+                <div class="night-list" id="night-ski-list">載入中...</div>
+            </div>
+        </div>
+
+        <!-- 2. 新增欄框：當日全區纜車運行狀況 (依第一區～第四區分類) -->
+        <div class="lift-status-box">
+            <div class="lift-box-header">
+                <span>🚡 當日纜車運行狀況（依 1～4 區分類）</span>
+                <a href="https://www.shigakogen-ski.or.jp/lift/index.php" target="_blank" rel="noopener noreferrer">官網來源 ↗</a>
+            </div>
+            <div class="lift-zones-container" id="lift-zones-container">
+                <div style="text-align: center; color: #64748b; font-size: 0.9em; padding: 10px;">
+                    載入纜車運行資訊中...
+                </div>
+            </div>
+        </div>
+
+        <!-- 3. 原本的 4 個雪場按鈕卡片 (2x2 排列) -->
+        <div class="weather-cards-grid">
+            
+            <!-- 第一區：燒額山 -->
+            <div class="weather-spot-card" onclick="goToTrailMap('area1')">
+                <div class="spot-header">
+                    <div class="spot-name">燒額山</div>
+                    <div class="spot-zone">(第一區)</div>
+                </div>
+                <div class="spot-metrics">
+                    <div class="metric-row">
+                        <span class="metric-label">氣溫</span>
+                        <span class="metric-value">
+                            <span class="weather-icon" id="w-icon-yakebitai">--</span>
+                            <span id="w-temp-yakebitai">--°C</span>
+                        </span>
+                    </div>
+                    <div class="metric-row">
+                        <span class="metric-label">風速</span>
+                        <span class="metric-value" id="w-wind-yakebitai">-- m/s</span>
+                    </div>
+                    <div class="metric-row">
+                        <span class="metric-label">積雪</span>
+                        <span class="metric-value snow-highlight" id="w-snow-yakebitai">-- cm</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 第二區：一之瀨 -->
+            <div class="weather-spot-card" onclick="goToTrailMap('area2')">
+                <div class="spot-header">
+                    <div class="spot-name">一之瀨</div>
+                    <div class="spot-zone">(第二區)</div>
+                </div>
+                <div class="spot-metrics">
+                    <div class="metric-row">
+                        <span class="metric-label">氣溫</span>
+                        <span class="metric-value">
+                            <span class="weather-icon" id="w-icon-ichinose">--</span>
+                            <span id="w-temp-ichinose">--°C</span>
+                        </span>
+                    </div>
+                    <div class="metric-row">
+                        <span class="metric-label">風速</span>
+                        <span class="metric-value" id="w-wind-ichinose">-- m/s</span>
+                    </div>
+                    <div class="metric-row">
+                        <span class="metric-label">積雪</span>
+                        <span class="metric-value snow-highlight" id="w-snow-ichinose">-- cm</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 第三區：蓮池 -->
+            <div class="weather-spot-card" onclick="goToTrailMap('area3')">
+                <div class="spot-header">
+                    <div class="spot-name">蓮池</div>
+                    <div class="spot-zone">(第三區)</div>
+                </div>
+                <div class="spot-metrics">
+                    <div class="metric-row">
+                        <span class="metric-label">氣溫</span>
+                        <span class="metric-value">
+                            <span class="weather-icon" id="w-icon-hasuike">--</span>
+                            <span id="w-temp-hasuike">--°C</span>
+                        </span>
+                    </div>
+                    <div class="metric-row">
+                        <span class="metric-label">風速</span>
+                        <span class="metric-value" id="w-wind-hasuike">-- m/s</span>
+                    </div>
+                    <div class="metric-row">
+                        <span class="metric-label">積雪</span>
+                        <span class="metric-value snow-highlight" id="w-snow-hasuike">-- cm</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 第四區：橫手山 -->
+            <div class="weather-spot-card" onclick="goToTrailMap('area4')">
+                <div class="spot-header">
+                    <div class="spot-name">橫手山</div>
+                    <div class="spot-zone">(第四區)</div>
+                </div>
+                <div class="spot-metrics">
+                    <div class="metric-row">
+                        <span class="metric-label">氣溫</span>
+                        <span class="metric-value">
+                            <span class="weather-icon" id="w-icon-yokoteyama">--</span>
+                            <span id="w-temp-yokoteyama">--°C</span>
+                        </span>
+                    </div>
+                    <div class="metric-row">
+                        <span class="metric-label">風速</span>
+                        <span class="metric-value" id="w-wind-yokoteyama">-- m/s</span>
+                    </div>
+                    <div class="metric-row">
+                        <span class="metric-label">積雪</span>
+                        <span class="metric-value snow-highlight" id="w-snow-yokoteyama">-- cm</span>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<style>
+    /* 1. 頂部時間與夜滑橫幅 */
+    .weather-status-banner {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        background: linear-gradient(135deg, #f0f7ff 0%, #e0f2fe 100%);
+        border: 2px solid #bae6fd;
+        border-radius: 12px;
+        padding: 14px 20px;
+        margin-bottom: 14px;
+        gap: 15px;
+    }
+    .banner-time { display: flex; flex-direction: column; align-items: center; flex: 1; }
+    .banner-time .year { font-size: 0.95em; color: #0369a1; font-weight: bold; }
+    .banner-time .datetime { font-size: 1.4em; font-weight: 800; color: #0c4a6e; }
+    .banner-divider { width: 2px; height: 42px; background-color: #bae6fd; }
+    .banner-night-ski { flex: 1.2; text-align: center; }
+    .night-title { font-size: 0.95em; font-weight: bold; color: #1e3a8a; margin-bottom: 4px; }
+    .night-list { font-size: 0.9em; color: #334155; font-weight: 600; line-height: 1.4; }
+
+    /* 2. 新增：纜車運行狀況欄框 */
+    .lift-status-box {
+        background: #f8fafc;
+        border: 2px solid #cbd5e1;
+        border-radius: 12px;
+        padding: 14px 18px;
+        margin-bottom: 20px;
+    }
+    .lift-box-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-weight: 800;
+        color: #1e293b;
+        font-size: 0.98em;
+        border-bottom: 1.5px solid #e2e8f0;
+        padding-bottom: 8px;
+        margin-bottom: 10px;
+    }
+    .lift-box-header a {
+        font-size: 0.8em;
+        color: #0284c7;
+        text-decoration: none;
+        font-weight: normal;
+    }
+    .lift-zones-container {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        max-height: 240px;
+        overflow-y: auto;
+        padding-right: 4px;
+    }
+    .lift-zone-group {
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+        padding: 6px 8px;
+        background: #ffffff;
+        border-radius: 8px;
+        border: 1px solid #e2e8f0;
+        font-size: 0.88em;
+    }
+    .zone-tag {
+        flex-shrink: 0;
+        padding: 2px 8px;
+        border-radius: 6px;
+        font-weight: bold;
+        color: #fff;
+        font-size: 0.85em;
+        margin-top: 1px;
+    }
+    .zone-tag-1 { background: #3498db; }
+    .zone-tag-2 { background: #e67e22; }
+    .zone-tag-3 { background: #2ecc71; }
+    .zone-tag-4 { background: #9b59b6; }
+
+    .zone-items {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        width: 100%;
+    }
+    .lift-line {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        color: #334155;
+        border-bottom: 1px dashed #f1f5f9;
+        padding-bottom: 2px;
+    }
+    .lift-line:last-child { border-bottom: none; padding-bottom: 0; }
+    .status-badge {
+        font-size: 0.85em;
+        font-weight: bold;
+        padding: 1px 7px;
+        border-radius: 4px;
+        flex-shrink: 0;
+    }
+    .st-run { background: #dcfce7; color: #15803d; }    /* 運行中 */
+    .st-pause { background: #fef9c3; color: #a16207; }  /* 天候暫停 */
+    .st-stop { background: #fee2e2; color: #b91c1c; }   /* 運行休止 */
+
+    /* 3. 原 4 張雪場按鈕卡片 (2x2) */
+    .weather-cards-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 18px;
+    }
+    .weather-spot-card {
+        background: #ffffff;
+        border: 2px solid #e2e8f0;
+        border-radius: 14px;
+        padding: 18px 20px;
+        cursor: pointer;
+        transition: all 0.25s ease;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+        position: relative;
+    }
+    .weather-spot-card:hover {
+        transform: translateY(-4px);
+        border-color: #38bdf8;
+        box-shadow: 0 10px 15px -3px rgba(56, 189, 248, 0.2);
+        background: #f8fafc;
+    }
+    .weather-spot-card::after {
+        content: "點擊查看雪道圖 ↗";
+        position: absolute;
+        top: 10px;
+        right: 12px;
+        font-size: 0.72em;
+        color: #94a3b8;
+    }
+    .weather-spot-card:hover::after { color: #0284c7; font-weight: bold; }
+    .spot-header { text-align: center; border-bottom: 1.5px dashed #e2e8f0; padding-bottom: 12px; margin-bottom: 14px; }
+    .spot-name { font-size: 1.4em; font-weight: 800; color: #0f172a; }
+    .spot-zone { font-size: 0.85em; color: #64748b; margin-top: 2px; }
+    .spot-metrics { display: flex; flex-direction: column; gap: 12px; padding: 0 10px; }
+    .metric-row { display: flex; justify-content: space-between; align-items: center; font-size: 1.05em; }
+    .metric-label { color: #475569; font-weight: 600; }
+    .metric-value { font-weight: 700; color: #1e293b; display: flex; align-items: center; gap: 6px; }
+    .weather-icon { font-size: 1.25em; }
+    .snow-highlight { color: #0284c7; font-size: 1.15em; font-weight: 800; }
+
+    @media (max-width: 600px) {
+        .weather-status-banner { flex-direction: column; padding: 12px; }
+        .banner-divider { width: 80%; height: 1.5px; }
+        .weather-cards-grid { grid-template-columns: 1fr; }
+        .lift-zone-group { flex-direction: column; gap: 6px; }
+    }
+</style>
+
     <div id="flights" class="tab-content">
                 <div style="text-align: center;">
             <div class="info-card"style="background-color: #c2f3ff;">
@@ -673,8 +1022,8 @@
 // ==========================================
     // 1. Tab 切換功能（支援網址 Hash 與分享）
     // ==========================================
-    const VALID_TABS = ['flights', 'trailmap', 'hotels', 'tickets', 'transport'];
-    const DEFAULT_TAB = 'trailmap'; // 預設首頁分頁（雪道地圖）
+    const VALID_TABS = ['weather','flights', 'trailmap', 'hotels', 'tickets', 'transport'];
+    const DEFAULT_TAB = 'weather'; // 預設首頁分頁
 
     function switchMainTab(tabId, updateHash = true) {
         if (!VALID_TABS.includes(tabId)) {
@@ -1078,12 +1427,151 @@ data.images.forEach(imgUrl => {
             modal.style.display = "none";
         }
     }
+// 1. 點擊雪場天氣卡片，直接跳轉到「雪道地圖」並切換到該區域
+function goToTrailMap(targetArea) {
+    // 呼叫主分頁切換函式切到「雪道地圖」並同步亮起導覽列按鈕
+    if (typeof switchMainTab === 'function') {
+        switchMainTab('trailmap');
+    }
+
+    // 呼叫儀表板更新函式，切換地圖與圖表
+    if (typeof updateDashboard === 'function') {
+        updateDashboard(targetArea);
+    }
+
+    // 同步地圖上的節點高亮狀態
+    document.querySelectorAll('.map-node').forEach(node => {
+        node.classList.remove('active');
+        if (node.getAttribute('data-target') === targetArea) {
+            node.classList.add('active');
+        }
+    });
+
+    // 平滑捲動到頁面頂部
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// 2. 顯示設備當下真實時間
+function renderCurrentRealTime() {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = now.getMonth() + 1;
+    const day = now.getDate();
+    let hours = now.getHours();
+    const minutes = String(now.getMinutes()).padStart(2, '0');
+    const ampm = hours >= 12 ? 'PM' : 'AM';
+    hours = hours % 12 || 12;
+
+    const yearEl = document.getElementById('weather-year');
+    const timeEl = document.getElementById('weather-update-time');
+    if (yearEl) yearEl.innerText = `${year}年`;
+    if (timeEl) timeEl.innerText = `${month}月${day}日 ${ampm} ${hours}:${minutes}`;
+}
+
+// 3. 渲染「當日纜車運行狀況」欄框 (依第一區～第四區分類)
+function renderLiftStatusBox(liftStatusData) {
+    const container = document.getElementById('lift-zones-container');
+    if (!container) return;
+
+    const zones = [
+        { key: "第一區", tagClass: "zone-tag-1" },
+        { key: "第二區", tagClass: "zone-tag-2" },
+        { key: "第三區", tagClass: "zone-tag-3" },
+        { key: "第四區", tagClass: "zone-tag-4" }
+    ];
+
+    let html = "";
+    zones.forEach(z => {
+        const items = (liftStatusData && liftStatusData[z.key]) ? liftStatusData[z.key] : [];
+        let linesHtml = "";
+
+        if (items.length === 0) {
+            linesHtml = `<div class="lift-line" style="color: #94a3b8;">無即時運行資訊（休止中）</div>`;
+        } else {
+            linesHtml = items.map(item => {
+                let badgeClass = "st-stop"; // 預設紅底 (運行休止)
+                if (item.status.includes("運行中") || item.status.includes("営業")) {
+                    badgeClass = "st-run";
+                } else if (item.status.includes("暫停") || item.status.includes("見合わせ")) {
+                    badgeClass = "st-pause";
+                }
+
+                return `
+                    <div class="lift-line">
+                        <span><strong>${item.resort}</strong> ${item.lift}</span>
+                        <span class="status-badge ${badgeClass}">${item.status}</span>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        html += `
+            <div class="lift-zone-group">
+                <span class="zone-tag ${z.tagClass}">${z.key}</span>
+                <div class="zone-items">${linesHtml}</div>
+            </div>
+        `;
+    });
+
+    container.innerHTML = html;
+}
+
+// 4. 網頁載入後執行：啟動即時時鐘並讀取 ski_weather.json
+document.addEventListener("DOMContentLoaded", function() {
+    renderCurrentRealTime();
+    setInterval(renderCurrentRealTime, 1000);
+
+    fetch('ski_weather.json?t=' + new Date().getTime())
+        .then(res => res.ok ? res.json() : null)
+        .then(data => {
+            const nightEl = document.getElementById('night-ski-list');
+
+            if (!data) {
+                if (nightEl) nightEl.innerText = "無";
+                renderLiftStatusBox(null);
+                return;
+            }
+
+            // (A) 更新夜滑
+            if (nightEl) {
+                nightEl.innerHTML = (Array.isArray(data.night_ski) && data.night_ski.length > 0)
+                    ? data.night_ski.join('<br>')
+                    : "無";
+            }
+
+            // (B) 更新第一區～第四區纜車運行狀況框
+            renderLiftStatusBox(data.lift_status);
+
+            // (C) 更新 4 張雪場按鈕卡片
+            const spots = ['yakebitai', 'ichinose', 'hasuike', 'yokoteyama'];
+            spots.forEach(spotKey => {
+                const spotData = data[spotKey];
+                if (spotData) {
+                    const iconEl = document.getElementById(`w-icon-${spotKey}`);
+                    const tempEl = document.getElementById(`w-temp-${spotKey}`);
+                    const windEl = document.getElementById(`w-wind-${spotKey}`);
+                    const snowEl = document.getElementById(`w-snow-${spotKey}`);
+
+                    if (iconEl && spotData.icon) iconEl.innerText = spotData.icon;
+                    if (tempEl && spotData.temp) tempEl.innerText = spotData.temp;
+                    if (windEl && spotData.wind) windEl.innerText = spotData.wind;
+                    if (snowEl && spotData.snow) snowEl.innerText = spotData.snow;
+                }
+            });
+        })
+        .catch(err => {
+            console.warn("讀取資料失敗:", err);
+            const nightEl = document.getElementById('night-ski-list');
+            if (nightEl) nightEl.innerText = "無";
+            renderLiftStatusBox(null);
+        });
+});
+  
 </script>
 <!-- 2. 彈出視窗 (Modal) 結構 -->
 <div id="imageModal" class="modal" onclick="closeModal(event)">
     <span class="close-btn" onclick="closeModal(event)">&times;</span>
     <img class="modal-content" id="modalImg">
 </div>
-
 </body>
 </html>
