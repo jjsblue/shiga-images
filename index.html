@@ -154,6 +154,68 @@
     th { background: #f8f9fa; color: var(--primary-color); }
     .price-tag { color: #e74c3c; font-weight: bold; font-size: 1.1em; }
 /* 四張卡片的共用基礎樣式 */
+    /* 電腦與手機皆維持 2x2 雙欄並排 */
+.weather-cards-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 14px;
+}
+
+@media (max-width: 600px) {
+    /* 縮小外層 info-card 左右留白，讓雙欄卡片有更充裕的寬度 */
+    #weather .info-card {
+        padding: 16px 12px;
+    }
+
+    .weather-cards-grid {
+        grid-template-columns: repeat(2, 1fr); /* 強制手機版維持一排 2 張卡片 */
+        gap: 10px;
+    }
+
+    .weather-spot-card {
+        padding: 14px 10px 12px 10px;
+        border-radius: 12px;
+    }
+
+    /* 精簡右上角提示字，避免與標題重疊 */
+    .weather-spot-card::after {
+        content: "雪道圖 ↗";
+        top: 6px;
+        right: 8px;
+        font-size: 0.65em;
+    }
+
+    .spot-header {
+        padding-bottom: 8px;
+        margin-bottom: 10px;
+        margin-top: 6px;
+    }
+
+    .spot-name {
+        font-size: 1.15em;
+    }
+
+    .spot-zone {
+        font-size: 0.78em;
+    }
+
+    .spot-metrics {
+        gap: 8px;
+        padding: 0 4px;
+    }
+
+    .metric-row {
+        font-size: 0.9em;
+    }
+
+    .weather-icon {
+        font-size: 1.1em;
+    }
+
+    .snow-highlight {
+        font-size: 1em;
+    }
+}
 .weather-spot-card {
     border: 2px solid #e2e8f0;
     border-radius: 14px;
