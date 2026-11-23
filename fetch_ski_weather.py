@@ -2,54 +2,44 @@ from datetime import datetime, timedelta, timezone
 import json
 import os
 import re
-import requests
 from bs4 import BeautifulSoup
+from playwright.sync_api import sync_playwright
 
-BASE_URL = "https://www.shigakogen-ski.or.jp"
-INDEX_URL = f"{BASE_URL}/lift/index.php"
+URL = "https://www.shigakogen-ski.or.jp/lift/index.php"
 
-HEADERS = {
-    "User-Agent": (
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-        "AppleWebKit/537.36 (KHTML, like Gecko) "
-        "Chrome/122.0.0.0 Safari/537.36"
-    )
+WEATHER_SPOTS = {
+    "yakebitai": ["焼額山"],
+    "ichinose": ["一の瀬ファミリー", "一の瀬"],
+    "hasuike": ["蓮池"],
+    "yokoteyama": ["横手山"],
 }
 
-# 1. 四張代表雪場卡片：直接對應官網各雪場專屬即時頁面 (確保 100% 抓到正確數據)
-SPOT_PAGES = {
-    "yakebitai": f"{BASE_URL}/lift/yakebitaiyama/",
-    "ichinose": f"{BASE_URL}/lift/ichinosefamily/",
-    "hasuike": f"{BASE_URL}/lift/hasuike/",
-    "yokoteyama": f"{BASE_URL}/lift/yokoteyama-shibutoge/",
-}
-
-# 2. 全區 18 座雪場子頁面與 1-4 區分類對照
 ZONE_RESORTS = {
     "第一區": [
-        {"name": "奧志賀高原", "url": f"{BASE_URL}/lift/okushigakogen/"},
-        {"name": "燒額山", "url": f"{BASE_URL}/lift/yakebitaiyama/"},
+        {"name": "奧志賀高原", "keywords": ["奥志賀高原"]},
+        {"name": "燒額山", "keywords": ["焼額山"]},
     ],
     "第二區": [
-        {"name": "一之瀨家庭", "url": f"{BASE_URL}/lift/ichinosefamily/"},
-        {"name": "一之瀨鑽石", "url": f"{BASE_URL}/lift/ichinosediamond/"},
-        {"name": "一之瀨山神", "url": f"{BASE_URL}/lift/ichinoseyamanokami/"},
-        {"name": "高天原猛獁", "url": f"{BASE_URL}/lift/takamagahara/"},
-        {"name": "冷杉森林貂鼠", "url": f"{BASE_URL}/lift/tannenomoriokojo/"},
-        {"name": "東館山", "url": f"{BASE_URL}/lift/higashitateyama/"},
-        {"name": "寺小屋", "url": f"{BASE_URL}/lift/terakoya/"},
-        {"name": "西館山", "url": f"{BASE_URL}/lift/nishitateyma/"},
-        {"name": "發哺 BUNA 平", "url": f"{BASE_URL}/lift/hoppobunadaira/"},
-        {"name": "巨人 (Giant)", "url": f"{BASE_URL}/lift/giant/"},
+        {"name": "一之瀨家庭", "keywords": ["一の瀬ファミリー"]},
+        {"name": "一之瀨鑽石", "keywords": ["一の瀬ダイヤモンド"]},
+        {"name": "一之瀨山神", "keywords": ["一の瀬山の神"]},
+        {"name": "高天原猛獁", "keywords": ["高天ヶ原"]},
+        {"name": "冷杉森林貂鼠", "keywords": ["タンネの森"]},
+        {"name": "東館山", "keywords": ["東館山"]},
+        {"name": "寺小屋", "keywords": ["寺小屋"]},
+        {"name": "西館山", "keywords": ["西館山"]},
+        {"name": "發哺 BUNA 平", "keywords": ["発哺ブナ平", "ブナ平"]},
+        {"name": "巨人 (Giant)", "keywords": ["ジャイアント"]},
     ],
     "第三區": [
-        {"name": "蓮池", "url": f"{BASE_URL}/lift/hasuike/"},
-        {"name": "丸池", "url": f"{BASE_URL}/lift/maruike/"},
-        {"name": "太陽谷", "url": f"{BASE_URL}/lift/sunvalley/"},
+        {"name": "蓮池", "keywords": ["蓮池"]},
+        {"name": "丸池", "keywords": ["丸池"]},
+        {"name": "太陽谷", "keywords": ["サンバレー"]},
     ],
     "第四區": [
-        {"name": "熊之湯", "url": f"{BASE_URL}/lift/kumanoyu/"},
-        {"name": "橫手山・涉峠", "url": f"{BASE_URL}/lift/yokoteyama-shibutoge/"},
+        {"name": "木戶池", "keywords": ["木戸池"]},
+        {"name": "熊之湯", "keywords": ["熊の湯"]},
+        {"name": "橫手山・涉峠", "keywords": ["横手山", "渋峠"]},
     ],
 }
 
@@ -78,103 +68,7 @@ def normalize_lift_status(raw_text):
     return raw_text.strip()[:10] if raw_text.strip() else "運行休止"
 
 
-def parse_spot_page(url):
-    """直接解析單一雪場頁面的 天気/気温/風速/積雪 與 纜車列表"""
-    info = {
-        "icon": "--",
-        "temp": "--°C",
-        "wind": "-- m/s",
-        "snow": "-- cm",
-        "lifts": [],
-        "night_open": False,
-    }
-    try:
-        resp = requests.get(url, headers=HEADERS, timeout=12)
-        resp.encoding = "utf-8"
-        if resp.status_code != 200:
-            return info
-
-        soup = BeautifulSoup(resp.text, "html.parser")
-        # 移除導覽列與頁尾干擾，只看主內容區
-        for tag in soup.find_all(["nav", "header", "footer"]):
-            tag.decompose()
-
-        text = soup.get_text(" ", strip=True)
-
-        # 1. 解析 天気 (支援: 天気 weather 晴れ)
-        m_weather = re.search(r"天気\s*(?:weather)?\s*([^\s\d]+)", text, re.I)
-        if m_weather:
-            info["icon"] = map_weather_icon(m_weather.group(1))
-
-        # 2. 解析 気温 (支援: 気温 temperature -5°C 或 -5℃)
-        m_temp = re.search(
-            r"気温\s*(?:temperature)?\s*([\-−+]?\d+(?:\.\d+)?)\s*[℃°C]?",
-            text,
-            re.I,
-        )
-        if m_temp:
-            val = m_temp.group(1).replace("−", "-")
-            info["temp"] = f"{val}°C"
-
-        # 3. 解析 風速 (支援: 風速 wind 1m/s 或 無風)
-        m_wind = re.search(
-            r"風速\s*(?:wind)?\s*(\d+(?:\.\d+)?)\s*m/s", text, re.I
-        )
-        if m_wind:
-            info["wind"] = f"➤ {m_wind.group(1)} m/s"
-        elif "無風" in text:
-            info["wind"] = "0 m/s"
-
-        # 4. 解析 積雪 (支援: 積雪 snowfall 15cm)
-        m_snow = re.search(
-            r"積雪\s*(?:snowfall)?\s*(\d+)\s*cm", text, re.I
-        )
-        if m_snow:
-            info["snow"] = f"{m_snow.group(1)} cm"
-
-        # 5. 解析夜滑狀態
-        if "ナイター" in text and any(
-            ok in text for ok in ["運行中", "営業中", "○"]
-        ):
-            if not any(
-                no in text
-                for no in ["ナイター営業なし", "ナイター運休", "ナイター休止"]
-            ):
-                info["night_open"] = True
-
-        # 6. 解析纜車運行表格 (<tr>)
-        for tr in soup.find_all("tr"):
-            cells = [
-                c.get_text(" ", strip=True)
-                for c in tr.find_all(["th", "td"])
-                if c.get_text(strip=True)
-            ]
-            if len(cells) >= 2:
-                lift_name = cells[0]
-                raw_status = " ".join(cells[1:])
-                if any(
-                    k in lift_name
-                    for k in [
-                        "リフト",
-                        "ゴンドラ",
-                        "ペア",
-                        "トリプル",
-                        "クワッド",
-                        "スカイレーター",
-                    ]
-                ):
-                    info["lifts"].append({
-                        "lift": lift_name,
-                        "status": normalize_lift_status(raw_status),
-                    })
-
-    except Exception as e:
-        print(f"抓取 {url} 異常: {e}")
-
-    return info
-
-
-def fetch_all():
+def fetch_with_browser():
     JST = timezone(timedelta(hours=9))
     now_str = datetime.now(JST).strftime("%Y-%m-%d %H:%M JST")
 
@@ -193,36 +87,112 @@ def fetch_all():
         },
     }
 
+    html_content = ""
+    try:
+        with sync_playwright() as p:
+            browser = p.chromium.launch(headless=True)
+            page = browser.new_page(
+                user_agent=(
+                    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+                    "AppleWebKit/537.36 (KHTML, like Gecko) "
+                    "Chrome/122.0.0.0 Safari/537.36"
+                )
+            )
+            page.goto(URL, wait_until="networkidle", timeout=30000)
+            page.wait_for_timeout(4000)  # 等待前端 JS 完整渲染所有雪場卡片
+            html_content = page.content()
+            browser.close()
+    except Exception as e:
+        print(f"瀏覽器開啟網頁異常: {e}")
+        return result
+
+    soup = BeautifulSoup(html_content, "html.parser")
+    # 移除導覽列與頁尾干擾
+    for tag in soup.find_all(["nav", "header", "footer"]):
+        tag.decompose()
+
     open_night_spots = []
-    cache_pages = {}
+    blocks = soup.find_all(["section", "article", "div"])
 
-    # 依第一區～第四區逐一抓取各雪場頁面並快取
-    for zone_name, resorts in ZONE_RESORTS.items():
-        for resort in resorts:
-            url = resort["url"]
-            page_data = parse_spot_page(url)
-            cache_pages[url] = page_data
+    for block in blocks:
+        text = block.get_text(" ", strip=True)
+        # 鎖定單一雪場區塊的合理文字長度
+        if len(text) < 15 or len(text) > 2500:
+            continue
 
-            if page_data["night_open"] and resort["name"] not in open_night_spots:
-                open_night_spots.append(resort["name"])
+        # 1. 解析四大代表卡片氣象 (支援: 天気 weather 晴れ / 気温 temperature -5°C / 積雪 snowfall 15cm)
+        for key, keywords in WEATHER_SPOTS.items():
+            if any(kw in text for kw in keywords) and result[key]["temp"] == "--°C":
+                if "気温" in text or "積雪" in text or "天気" in text:
+                    m_w = re.search(r"天気\s*(?:weather)?\s*([^\s\d]+)", text, re.I)
+                    if m_w:
+                        result[key]["icon"] = map_weather_icon(m_w.group(1))
 
-            for lift_item in page_data["lifts"]:
-                result["lift_status"][zone_name].append({
-                    "resort": resort["name"],
-                    "lift": lift_item["lift"],
-                    "status": lift_item["status"],
-                })
+                    m_temp = re.search(
+                        r"気温\s*(?:temperature)?\s*([\-−+]?\d+(?:\.\d+)?)\s*[℃°C]?",
+                        text,
+                        re.I,
+                    )
+                    if m_temp:
+                        result[key]["temp"] = f"{m_temp.group(1).replace('−', '-')}°C"
 
-    # 從快取中填入 4 張代表雪場卡片的天氣數據
-    for spot_key, url in SPOT_PAGES.items():
-        if url in cache_pages:
-            p = cache_pages[url]
-            result[spot_key] = {
-                "icon": p["icon"],
-                "temp": p["temp"],
-                "wind": p["wind"],
-                "snow": p["snow"],
-            }
+                    m_wind = re.search(
+                        r"風速\s*(?:wind)?\s*(\d+(?:\.\d+)?)\s*m/s", text, re.I
+                    )
+                    if m_wind:
+                        result[key]["wind"] = f"➤ {m_wind.group(1)} m/s"
+                    elif "無風" in text:
+                        result[key]["wind"] = "0 m/s"
+
+                    m_snow = re.search(
+                        r"積雪\s*(?:snowfall)?\s*(\d+)\s*cm", text, re.I
+                    )
+                    if m_snow:
+                        result[key]["snow"] = f"{m_snow.group(1)} cm"
+
+        # 2. 解析全區 1-4 區夜滑與纜車列表
+        for zone_name, resorts in ZONE_RESORTS.items():
+            for resort in resorts:
+                if any(kw in text for kw in resort["keywords"]):
+                    # 夜滑判斷
+                    if "ナイター" in text and any(
+                        ok in text for ok in ["運行中", "営業中", "○"]
+                    ):
+                        if not any(
+                            no in text
+                            for no in ["ナイター営業なし", "ナイター運休", "ナイター休止"]
+                        ):
+                            if resort["name"] not in open_night_spots:
+                                open_night_spots.append(resort["name"])
+
+                    # 纜車列表解析
+                    for tr in block.find_all("tr"):
+                        cells = [
+                            c.get_text(" ", strip=True)
+                            for c in tr.find_all(["th", "td"])
+                            if c.get_text(strip=True)
+                        ]
+                        if len(cells) >= 2:
+                            lift_name = cells[0]
+                            raw_status = " ".join(cells[1:])
+                            if any(
+                                k in lift_name
+                                for k in [
+                                    "リフト",
+                                    "ゴンドラ",
+                                    "ペア",
+                                    "トリプル",
+                                    "クワッド",
+                                    "スカイレーター",
+                                ]
+                            ):
+                                entry = {
+                                    "resort": resort["name"],
+                                    "lift": lift_name,
+                                    "status": normalize_lift_status(raw_status),
+                                }
+                                if entry not in result["lift_status"][zone_name]:
+                                    result["lift_status"][zone_name].append(entry)
 
     if open_night_spots:
         result["night_ski"] = open_night_spots
@@ -231,9 +201,9 @@ def fetch_all():
 
 
 if __name__ == "__main__":
-    final_data = fetch_all()
+    final_data = fetch_with_browser()
     with open("ski_weather.json", "w", encoding="utf-8") as f:
         json.dump(final_data, f, ensure_ascii=False, indent=2)
         f.flush()
         os.fsync(f.fileno())
-    print("更新完成：", json.dumps(final_data, ensure_ascii=False))
+    print("瀏覽器渲染擷取完成：", json.dumps(final_data, ensure_ascii=False))
