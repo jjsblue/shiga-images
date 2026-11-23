@@ -1,32 +1,31 @@
 {
-  "last_checked": "2026-11-23 13:43 JST",
+  "last_checked": "2026-11-23 13:49 JST",
   "night_ski": [
-    "奧志賀高原",
-    "一之瀨家庭"
+    "無"
   ],
   "yakebitai": {
     "icon": "🏔️",
     "temp": "--°C",
     "wind": "-- m/s",
-    "snow": "-- cm"
+    "snow": "0 cm"
   },
   "ichinose": {
     "icon": "🏔️",
-    "temp": "--°C",
+    "temp": "0°C",
     "wind": "-- m/s",
-    "snow": "-- cm"
+    "snow": "0 cm"
   },
   "hasuike": {
     "icon": "🏔️",
-    "temp": "--°C",
+    "temp": "0°C",
     "wind": "-- m/s",
-    "snow": "-- cm"
+    "snow": "0 cm"
   },
   "yokoteyama": {
-    "icon": "🏔️",
-    "temp": "--°C",
+    "icon": "☀️",
+    "temp": "-5°C",
     "wind": "-- m/s",
-    "snow": "-- cm"
+    "snow": "15 cm"
   },
   "lift_status": {
     "第一區": [],
