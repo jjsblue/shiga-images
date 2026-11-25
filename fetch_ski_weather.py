@@ -52,9 +52,8 @@ def parse_weathernews_spot(page, spot_key, url):
         page.goto(url, wait_until="domcontentloaded", timeout=30000)
         page.wait_for_timeout(4000)
 
-# 1. 直接從預報表區塊內尋找第一個帶有 Weathernews 天氣底色（橘/灰/藍）或圖示的方塊
+        # 1. 直接從「スキー場の天気」預報表尋找第一個帶有天氣底色的方塊
         weather_cell_info = page.evaluate("""() => {
-            // 定位「スキー場の天気」標題下方的預報表區塊
             const headings = Array.from(document.querySelectorAll('h2, h3, div, p'));
             const titleEl = headings.find(el => el.textContent.trim() === 'スキー場の天気');
             const container = titleEl ? titleEl.parentElement : document.body;
@@ -67,11 +66,9 @@ def parse_weathernews_spot(page, spot_key, url):
             let firstImgAlt = imgs.length > 0 ? (imgs[0].alt || '') : '';
             let firstSvgClass = svgs.length > 0 ? (svgs[0].getAttribute('class') || '') : '';
 
-            // 找出第一個具備非白、非透明背景色的天氣小方塊 (Weathernews 晴天為橘色 rgb(243, 130, 0) / rgb(255, ...))
             let firstWeatherBg = '';
             for (const b of boxes) {
                 const rect = b.getBoundingClientRect();
-                // 限制大小在天氣圖示方塊的合理範圍內 (寬高約 20px ~ 80px)
                 if (rect.width >= 20 && rect.width <= 90 && rect.height >= 20 && rect.height <= 90) {
                     const bg = window.getComputedStyle(b).backgroundColor;
                     if (bg && bg !== 'rgba(0, 0, 0, 0)' && bg !== 'rgb(255, 255, 255)' && bg !== 'rgb(245, 245, 245)') {
@@ -91,6 +88,7 @@ def parse_weathernews_spot(page, spot_key, url):
 
         print(f"[{spot_key}] 天氣方塊偵測結果: {weather_cell_info}")
 
+        # 2. 取得氣溫、風速、降雪文字
         visible_text = page.inner_text("body")
         lines = [line.strip() for line in visible_text.splitlines() if line.strip()]
 
@@ -119,7 +117,8 @@ def parse_weathernews_spot(page, spot_key, url):
                     spot_data["snow"] = f"{snow_val} cm"
                     snow_num = float(snow_val)
 
-icon_found = ""
+        # 3. 判定天氣圖示 (支援 鮮橘晴天 / 淺藍下雪 / 深藍下雨 / 灰色陰天)
+        icon_found = ""
         if weather_cell_info:
             combined = f"{weather_cell_info.get('imgAlt', '')} {weather_cell_info.get('imgSrc', '')} {weather_cell_info.get('svgClass', '')}".lower()
             bg = weather_cell_info.get("bgColor", "")
@@ -138,18 +137,13 @@ icon_found = ""
                 if m_rgb:
                     r, g, b = int(m_rgb.group(1)), int(m_rgb.group(2)), int(m_rgb.group(3))
                     if r > 200 and g > 80 and b < 90:
-                        # 鮮明橘色方塊 = 晴天
                         icon_found = "☀️"
                     elif b > 180 and r >= 95 and g >= 145:
-                        # 淺天藍色方塊 (高亮度、R 與 G 值偏高) = 下雪
                         icon_found = "❄️"
                     elif b > 180 and r < 95:
-                        # 深邃純藍色方塊 (R 值極低、色彩飽和) = 下雨
                         icon_found = "🌧️"
                     elif abs(r - g) < 25 and abs(g - b) < 25 and 90 < r < 220:
-                        # 灰色方塊 = 陰天
                         icon_found = "☁️"
-
 
         if icon_found:
             spot_data["icon"] = icon_found
@@ -187,7 +181,6 @@ def parse_shiga_lifts_and_night(page):
         open_night_spots = []
 
         for idx, line in enumerate(lines):
-            # 直接比對指定的 18 座雪場日文全名 (只要這行包含該雪場全名，就立刻切換分區)
             for z_name, r_name, jp_full_name in ZONE_RESORTS:
                 if jp_full_name in line:
                     current_zone = z_name
@@ -197,13 +190,11 @@ def parse_shiga_lifts_and_night(page):
             if not current_zone or not current_resort:
                 continue
 
-            # 偵測夜滑狀態
             if "ナイター" in line and any(ok in line for ok in ["運行中", "営業中", "○"]):
                 if not any(no in line for no in ["営業なし", "運休", "休止"]):
                     if current_resort not in open_night_spots:
                         open_night_spots.append(current_resort)
 
-            # 偵測纜車列 (前後 3 行視窗合併)
             window_text = " ".join(lines[idx : min(idx + 3, len(lines))])
 
             is_lift_line = bool(re.match(r"^\d{1,2}\s+\S+", line)) or any(
@@ -294,4 +285,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
