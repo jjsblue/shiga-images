@@ -1,5 +1,5 @@
 {
-  "last_checked": "2026-11-25 04:06 JST",
+  "last_checked": "2026-11-25 14:02 JST",
   "night_ski": [
     "無"
   ],
@@ -23,7 +23,7 @@
   },
   "yokoteyama": {
     "icon": "☁️",
-    "temp": "4°C",
+    "temp": "-5°C",
     "wind": "-- m/s",
     "snow": "15 cm"
   },
@@ -268,7 +268,7 @@
       {
         "resort": "橫手山・涉峠",
         "lift": "横手山第4ペア",
-        "status": "運行休止"
+        "status": "運行中"
       },
       {
         "resort": "橫手山・涉峠",
