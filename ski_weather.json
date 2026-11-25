@@ -1,35 +1,35 @@
 {
-  "last_checked": "2026-11-25 23:48 JST",
+  "last_checked": "2026-11-26 00:15 JST",
   "night_ski": [
     "無"
   ],
   "yakebitai": {
-    "icon": "☀️",
-    "temp": "-6°C",
-    "wind": "➤ 2 m/s",
+    "icon": "⛅",
+    "temp": "--°C",
+    "wind": "-- m/s",
     "snow": "-- cm",
-    "snowfall": "0 cm"
+    "snowfall": "-- cm"
   },
   "ichinose": {
-    "icon": "☀️",
-    "temp": "-6°C",
-    "wind": "➤ 2 m/s",
+    "icon": "⛅",
+    "temp": "--°C",
+    "wind": "-- m/s",
     "snow": "-- cm",
-    "snowfall": "0 cm"
+    "snowfall": "-- cm"
   },
   "hasuike": {
-    "icon": "☀️",
-    "temp": "-4°C",
-    "wind": "➤ 1 m/s",
+    "icon": "⛅",
+    "temp": "--°C",
+    "wind": "-- m/s",
     "snow": "-- cm",
-    "snowfall": "0 cm"
+    "snowfall": "-- cm"
   },
   "yokoteyama": {
-    "icon": "☀️",
-    "temp": "-7°C",
-    "wind": "➤ 1 m/s",
-    "snow": "15 cm",
-    "snowfall": "0 cm"
+    "icon": "⛅",
+    "temp": "--°C",
+    "wind": "-- m/s",
+    "snow": "-- cm",
+    "snowfall": "-- cm"
   },
   "lift_status": {
     "第一區": [
