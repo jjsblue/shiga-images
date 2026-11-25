@@ -158,9 +158,10 @@ def parse_shiga_lifts_and_night(page):
         "第四區": [],
     }
 
-    try:
-        page.goto(SHIGA_LIFT_URL, wait_until="networkidle", timeout=35000)
-        page.wait_for_timeout(4000)
+     try:
+        # 改用 domcontentloaded 避免因官網外部追蹤碼或社群套件卡住 networkidle 而超時
+        page.goto(SHIGA_LIFT_URL, wait_until="domcontentloaded", timeout=30000)
+        page.wait_for_timeout(5000)  # 等待前端 JS 將各區纜車列表渲染進畫面
 
         # 取得頁面上所有可見文字並按行切分 (徹底避開複雜的 div/table 嵌套)
         visible_text = page.inner_text("body")
