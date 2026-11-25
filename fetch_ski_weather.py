@@ -41,22 +41,30 @@ ZONE_RESORTS = [
 
 
 def get_wind_arrow(wind_raw):
-    """直接依實際測量到的旋轉角度或方位字串回傳對應箭頭"""
+    """將以正北為 0 度、順時針增加的角度轉換為箭頭"""
+
     if not wind_raw:
         return "➤"
 
-    # 若傳入的是已經算好的角度數字字串 (例如 "ANGLE:202.5")
-    if wind_raw.startswith("ANGLE:"):
-        try:
-            deg = float(wind_raw.split(":")[1]) % 360
-            # 0度=↑, 45度=↗, 90度=→, 135度=↘, 180度=↓, 225度=↙, 270度=←, 315度=↖
-            arrows = ["↑", "↗", "→", "↘", "↓", "↙", "←", "↖"]
-            idx = int((deg + 22.5) // 45) % 8
-            return arrows[idx]
-        except Exception:
+    try:
+        if isinstance(wind_raw, (int, float)):
+            deg = float(wind_raw) % 360
+
+        elif str(wind_raw).startswith("ANGLE:"):
+            deg = float(str(wind_raw).split(":")[1]) % 360
+
+        else:
             return "➤"
 
-    return "➤"
+        arrows = ["↑", "↗", "→", "↘", "↓", "↙", "←", "↖"]
+
+        idx = int((deg + 22.5) // 45) % 8
+
+        return arrows[idx]
+
+    except (ValueError, TypeError):
+        return "➤"
+
 
 
 def parse_weathernews_spot(page, spot_key, url):
@@ -85,277 +93,3 @@ def parse_weathernews_spot(page, spot_key, url):
             let firstImgSrc = imgs.length > 0 ? (imgs[0].src || '') : '';
             let firstImgAlt = imgs.length > 0 ? (imgs[0].alt || '') : '';
             let firstSvgClass = svgs.length > 0 ? (svgs[0].getAttribute('class') || '') : '';
-
-            // 抓取第一個天氣圖示底色
-            let firstWeatherBg = '';
-            for (const b of boxes) {
-                const rect = b.getBoundingClientRect();
-                if (rect.width >= 20 && rect.width <= 90 && rect.height >= 20 && rect.height <= 90) {
-                    const bg = window.getComputedStyle(b).backgroundColor;
-                    if (bg && bg !== 'rgba(0, 0, 0, 0)' && bg !== 'rgb(255, 255, 255)' && bg !== 'rgb(245, 245, 245)') {
-                        firstWeatherBg = bg;
-                        break;
-                    }
-                }
-            }
-
-            // 直接定位第一個風速數字，抓它正左邊相鄰的箭頭元素並計算實際螢幕旋轉角度
-            let windRaw = '';
-            const allLeaves = Array.from(container.querySelectorAll('div, span, td, p'))
-                .filter(el => el.children.length === 0 && /^\d+(\.\d+)?$/.test(el.textContent.trim()));
-
-            // 預報表每一欄有：時(16)、気温(-6)、風(2)、降雪(0)。我們找包含 svg 或 img 的父層裡的數字
-            for (const numEl of allLeaves) {
-                const parent = numEl.parentElement;
-                if (!parent) continue;
-                const arrowIcon = parent.querySelector('svg, img');
-                if (arrowIcon) {
-                    const rect = arrowIcon.getBoundingClientRect();
-                    // 排除掉大顆的天氣圖示，鎖定風速旁邊的小箭頭 (寬高小於 28px)
-                    if (rect.width > 0 && rect.width <= 28 && rect.height > 0 && rect.height <= 28) {
-                        // 檢查本身以及內部子元素 (g, path) 的 transform 旋轉矩陣
-                        const targets = [arrowIcon, ...Array.from(arrowIcon.querySelectorAll('g, path, polygon'))];
-                        for (const t of targets) {
-                            const st = window.getComputedStyle(t).transform;
-                            if (st && st !== 'none') {
-                                const m = st.match(/matrix\(([^,]+),\s*([^,]+),/);
-                                if (m) {
-                                    const a = parseFloat(m[1]);
-                                    const b = parseFloat(m[2]);
-                                    let deg = Math.atan2(b, a) * (180 / Math.PI);
-                                    // Weathernews 箭頭預設朝上(0度)，若實際頁面朝下則加 180
-                                    windRaw = 'ANGLE:' + ((deg + 360) % 360).toFixed(1);
-                                    break;
-                                }
-                            }
-                        }
-                        // 如果不是靠 transform 旋轉，而是直接換 img src 或 path 座標
-                        if (!windRaw) {
-                            const src = arrowIcon.getAttribute('src') || '';
-                            const d = arrowIcon.querySelector('path, polygon')?.getAttribute('d') || arrowIcon.querySelector('polygon')?.getAttribute('points') || '';
-                            windRaw = src || d;
-                        }
-                        break;
-                    }
-                }
-            }
-
-            return {
-                imgSrc: firstImgSrc,
-                imgAlt: firstImgAlt,
-                svgClass: firstSvgClass,
-                bgColor: firstWeatherBg,
-                windTransform: windRaw
-            };
-        }""")
-
-        print(f"[{spot_key}] 風向原始偵測: {visual_info.get('windTransform')} | HTML: {visual_info.get('windDebug')}")
-        
-        visible_text = page.inner_text("body")
-        lines = [line.strip() for line in visible_text.splitlines() if line.strip()]
-
-        # 2. 擷取畫面上方的「現在の積雪」 -> 存入 snow
-        for i in range(len(lines) - 1):
-            if lines[i] == "現在の積雪":
-                raw_depth = lines[i + 1].strip()
-                if re.match(r"^\d+(?:\.\d+)?$", raw_depth):
-                    spot_data["snow"] = f"{raw_depth} cm"
-                else:
-                    spot_data["snow"] = "-- cm"
-                break
-
-        # 3. 擷取逐時預報表的 気温 / 風 / 降雪 -> 降雪存入 snowfall
-        start_idx = -1
-        for i in range(len(lines) - 1):
-            if lines[i] == "降雪" and lines[i + 1] == "cm":
-                start_idx = i + 2
-                break
-
-        snowfall_num = 0.0
-        if start_idx != -1 and start_idx + 4 < len(lines):
-            curr = start_idx
-            if "日(" in lines[curr] or "日（" in lines[curr]:
-                curr += 1
-
-            if curr + 3 < len(lines):
-                temp_val = lines[curr + 1].replace("−", "-")
-                wind_val = lines[curr + 2]
-                snowfall_val = lines[curr + 3]
-
-                if re.match(r"^[\-+]?\d+(?:\.\d+)?$", temp_val):
-                    spot_data["temp"] = f"{temp_val}°C"
-                if re.match(r"^\d+(?:\.\d+)?$", wind_val):
-                    arrow = get_wind_arrow(visual_info.get("windTransform", "") if visual_info else "")
-                    spot_data["wind"] = f"{arrow} {wind_val} m/s"
-                if re.match(r"^\d+(?:\.\d+)?$", snowfall_val):
-                    spot_data["snowfall"] = f"{snowfall_val} cm"
-                    snowfall_num = float(snowfall_val)
-
-        # 4. 判定天氣圖示 (支援 鮮橘晴天 / 淺藍下雪 / 深藍下雨 / 灰色陰天)
-        icon_found = ""
-        if visual_info:
-            combined = f"{visual_info.get('imgAlt', '')} {visual_info.get('imgSrc', '')} {visual_info.get('svgClass', '')}".lower()
-            bg = visual_info.get("bgColor", "")
-
-            if any(k in combined for k in ["晴", "sun", "clear", "/100", "_100", "101"]):
-                icon_found = "☀️"
-            elif any(k in combined for k in ["雪", "snow", "/400", "_400", "401", "402"]):
-                icon_found = "❄️"
-            elif any(k in combined for k in ["曇", "cloud", "/200", "_200", "201"]):
-                icon_found = "☁️"
-            elif any(k in combined for k in ["雨", "rain", "/300", "_300"]):
-                icon_found = "🌧️"
-
-            if not icon_found and bg:
-                m_rgb = re.search(r"rgba?\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)", bg)
-                if m_rgb:
-                    r, g, b = int(m_rgb.group(1)), int(m_rgb.group(2)), int(m_rgb.group(3))
-                    if r > 200 and g > 80 and b < 90:
-                        icon_found = "☀️"
-                    elif b > 180 and r >= 95 and g >= 145:
-                        icon_found = "❄️"
-                    elif b > 180 and r < 95:
-                        icon_found = "🌧️"
-                    elif abs(r - g) < 25 and abs(g - b) < 25 and 90 < r < 220:
-                        icon_found = "☁️"
-
-        if icon_found:
-            spot_data["icon"] = icon_found
-        elif snowfall_num > 0:
-            spot_data["icon"] = "❄️"
-        else:
-            spot_data["icon"] = "⛅"
-
-    except Exception as e:
-        print(f"抓取 {spot_key} ({url}) 異常: {e}")
-
-    print(f"[{spot_key}] 天氣結果: {spot_data}")
-    return spot_data
-
-
-def parse_shiga_lifts_and_night(page):
-    """直接依指定雪場全名對照表，逐行歸類 1~4 區纜車與夜滑狀態"""
-    night_ski = ["無"]
-    lift_status = {
-        "第一區": [],
-        "第二區": [],
-        "第三區": [],
-        "第四區": [],
-    }
-
-    try:
-        page.goto(SHIGA_LIFT_URL, wait_until="domcontentloaded", timeout=30000)
-        page.wait_for_timeout(5000)
-
-        visible_text = page.inner_text("body")
-        lines = [line.strip() for line in visible_text.splitlines() if line.strip()]
-
-        current_zone = None
-        current_resort = None
-        open_night_spots = []
-
-        for idx, line in enumerate(lines):
-            for z_name, r_name, jp_full_name in ZONE_RESORTS:
-                if jp_full_name in line:
-                    current_zone = z_name
-                    current_resort = r_name
-                    break
-
-            if not current_zone or not current_resort:
-                continue
-
-            if "ナイター" in line and any(ok in line for ok in ["運行中", "営業中", "○"]):
-                if not any(no in line for no in ["営業なし", "運休", "休止"]):
-                    if current_resort not in open_night_spots:
-                        open_night_spots.append(current_resort)
-
-            window_text = " ".join(lines[idx : min(idx + 3, len(lines))])
-
-            is_lift_line = bool(re.match(r"^\d{1,2}\s+\S+", line)) or any(
-                k in line for k in ["リフト", "ゴンドラ", "スカイ", "ペア", "トリプル", "クワッド", "ロマンス", "高速", "第1", "第2", "第3", "第4", "第5"]
-            )
-
-            if is_lift_line and len(line) <= 50 and any(
-                st in window_text for st in ["運行中", "運休中", "見合わせ", "準備中"]
-            ):
-                clean_name = re.sub(r"^\d{1,2}\s+", "", line)
-                clean_name = re.split(r"\s+[A-Za-z○×△]", clean_name)[0].strip()
-
-                if len(clean_name) >= 2 and not any(
-                    bad in clean_name for bad in ["運行", "運休", "見合わせ", "準備中", "最終更新", "天気", "気温", "積雪", "スキー場"]
-                ):
-                    if "運行中" in window_text:
-                        status_zh = "運行中"
-                    elif "見合わせ" in window_text or "準備中" in window_text:
-                        status_zh = "天候暫停"
-                    else:
-                        status_zh = "運行休止"
-
-                    entry = {
-                        "resort": current_resort,
-                        "lift": clean_name,
-                        "status": status_zh,
-                    }
-                    if entry not in lift_status[current_zone]:
-                        lift_status[current_zone].append(entry)
-
-        if open_night_spots:
-            night_ski = open_night_spots
-
-    except Exception as e:
-        print(f"抓取志賀高原纜車官網異常: {e}")
-
-    total_lifts = sum(len(v) for v in lift_status.values())
-    print(f"纜車掃描完成，總共抓到 {total_lifts} 條纜車資訊！")
-    for z, items in lift_status.items():
-        print(f"  {z}: {len(items)} 條")
-
-    return night_ski, lift_status
-
-
-def main():
-    JST = timezone(timedelta(hours=9))
-    now_str = datetime.now(JST).strftime("%Y-%m-%d %H:%M JST")
-
-    result = {
-        "last_checked": now_str,
-        "night_ski": ["無"],
-        "yakebitai": {"icon": "⛅", "temp": "--°C", "wind": "-- m/s", "snow": "-- cm", "snowfall": "-- cm"},
-        "ichinose": {"icon": "⛅", "temp": "--°C", "wind": "-- m/s", "snow": "-- cm", "snowfall": "-- cm"},
-        "hasuike": {"icon": "⛅", "temp": "--°C", "wind": "-- m/s", "snow": "-- cm", "snowfall": "-- cm"},
-        "yokoteyama": {"icon": "⛅", "temp": "--°C", "wind": "-- m/s", "snow": "-- cm", "snowfall": "-- cm"},
-        "lift_status": {
-            "第一區": [],
-            "第二區": [],
-            "第三區": [],
-            "第四區": [],
-        },
-    }
-
-    with sync_playwright() as p:
-        browser = p.chromium.launch(headless=True)
-        page = browser.new_page(
-            user_agent=(
-                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-                "AppleWebKit/537.36 (KHTML, like Gecko) "
-                "Chrome/122.0.0.0 Safari/537.36"
-            )
-        )
-
-        for spot_key, url in WEATHERNEWS_SPOTS.items():
-            result[spot_key] = parse_weathernews_spot(page, spot_key, url)
-
-        night_ski, lift_status = parse_shiga_lifts_and_night(page)
-        result["night_ski"] = night_ski
-        result["lift_status"] = lift_status
-
-        browser.close()
-
-    with open("ski_weather.json", "w", encoding="utf-8") as f:
-        json.dump(result, f, ensure_ascii=False, indent=2)
-        f.flush()
-        os.fsync(f.fileno())
-
-
-if __name__ == "__main__":
-    main()
