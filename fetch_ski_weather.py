@@ -41,18 +41,19 @@ ZONE_RESORTS = [
 
 
 def parse_weathernews_spot(page, spot_key, url):
-    """擷取 Weathernews 逐時預報的第一筆天氣圖示、氣溫、風速、降雪"""
+    """擷取 Weathernews 的 現在の積雪(snow) 以及逐時預報 天気/気温/風/降雪(snowfall)"""
     spot_data = {
         "icon": "⛅",
         "temp": "--°C",
         "wind": "-- m/s",
-        "snow": "-- cm",
+        "snow": "-- cm",      # 現在の積雪
+        "snowfall": "-- cm",  # 預報降雪
     }
     try:
         page.goto(url, wait_until="domcontentloaded", timeout=30000)
         page.wait_for_timeout(4000)
 
-        # 1. 直接從「スキー場の天気」預報表尋找第一個帶有天氣底色的方塊
+        # 1. 偵測「スキー場の天気」預報表第一個天氣方塊底色
         weather_cell_info = page.evaluate("""() => {
             const headings = Array.from(document.querySelectorAll('h2, h3, div, p'));
             const titleEl = headings.find(el => el.textContent.trim() === 'スキー場の天気');
@@ -86,19 +87,27 @@ def parse_weathernews_spot(page, spot_key, url):
             };
         }""")
 
-        print(f"[{spot_key}] 天氣方塊偵測結果: {weather_cell_info}")
-
-        # 2. 取得氣溫、風速、降雪文字
         visible_text = page.inner_text("body")
         lines = [line.strip() for line in visible_text.splitlines() if line.strip()]
 
+        # 2. 擷取畫面上方的「現在の積雪」 -> 存入 snow
+        for i in range(len(lines) - 1):
+            if lines[i] == "現在の積雪":
+                raw_depth = lines[i + 1].strip()
+                if re.match(r"^\d+(?:\.\d+)?$", raw_depth):
+                    spot_data["snow"] = f"{raw_depth} cm"
+                else:
+                    spot_data["snow"] = "-- cm"
+                break
+
+        # 3. 擷取逐時預報表的 気温 / 風 / 降雪 -> 降雪存入 snowfall
         start_idx = -1
         for i in range(len(lines) - 1):
             if lines[i] == "降雪" and lines[i + 1] == "cm":
                 start_idx = i + 2
                 break
 
-        snow_num = 0.0
+        snowfall_num = 0.0
         if start_idx != -1 and start_idx + 4 < len(lines):
             curr = start_idx
             if "日(" in lines[curr] or "日（" in lines[curr]:
@@ -107,17 +116,17 @@ def parse_weathernews_spot(page, spot_key, url):
             if curr + 3 < len(lines):
                 temp_val = lines[curr + 1].replace("−", "-")
                 wind_val = lines[curr + 2]
-                snow_val = lines[curr + 3]
+                snowfall_val = lines[curr + 3]
 
                 if re.match(r"^[\-+]?\d+(?:\.\d+)?$", temp_val):
                     spot_data["temp"] = f"{temp_val}°C"
                 if re.match(r"^\d+(?:\.\d+)?$", wind_val):
                     spot_data["wind"] = f"➤ {wind_val} m/s"
-                if re.match(r"^\d+(?:\.\d+)?$", snow_val):
-                    spot_data["snow"] = f"{snow_val} cm"
-                    snow_num = float(snow_val)
+                if re.match(r"^\d+(?:\.\d+)?$", snowfall_val):
+                    spot_data["snowfall"] = f"{snowfall_val} cm"
+                    snowfall_num = float(snowfall_val)
 
-        # 3. 判定天氣圖示 (支援 鮮橘晴天 / 淺藍下雪 / 深藍下雨 / 灰色陰天)
+        # 4. 判定天氣圖示 (支援 鮮橘晴天 / 淺藍下雪 / 深藍下雨 / 灰色陰天)
         icon_found = ""
         if weather_cell_info:
             combined = f"{weather_cell_info.get('imgAlt', '')} {weather_cell_info.get('imgSrc', '')} {weather_cell_info.get('svgClass', '')}".lower()
@@ -147,7 +156,7 @@ def parse_weathernews_spot(page, spot_key, url):
 
         if icon_found:
             spot_data["icon"] = icon_found
-        elif snow_num > 0:
+        elif snowfall_num > 0:
             spot_data["icon"] = "❄️"
         else:
             spot_data["icon"] = "⛅"
@@ -246,10 +255,10 @@ def main():
     result = {
         "last_checked": now_str,
         "night_ski": ["無"],
-        "yakebitai": {"icon": "⛅", "temp": "--°C", "wind": "-- m/s", "snow": "-- cm"},
-        "ichinose": {"icon": "⛅", "temp": "--°C", "wind": "-- m/s", "snow": "-- cm"},
-        "hasuike": {"icon": "⛅", "temp": "--°C", "wind": "-- m/s", "snow": "-- cm"},
-        "yokoteyama": {"icon": "⛅", "temp": "--°C", "wind": "-- m/s", "snow": "-- cm"},
+        "yakebitai": {"icon": "⛅", "temp": "--°C", "wind": "-- m/s", "snow": "-- cm", "snowfall": "-- cm"},
+        "ichinose": {"icon": "⛅", "temp": "--°C", "wind": "-- m/s", "snow": "-- cm", "snowfall": "-- cm"},
+        "hasuike": {"icon": "⛅", "temp": "--°C", "wind": "-- m/s", "snow": "-- cm", "snowfall": "-- cm"},
+        "yokoteyama": {"icon": "⛅", "temp": "--°C", "wind": "-- m/s", "snow": "-- cm", "snowfall": "-- cm"},
         "lift_status": {
             "第一區": [],
             "第二區": [],
