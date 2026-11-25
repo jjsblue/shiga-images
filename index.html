@@ -527,106 +527,109 @@
         <!-- 3. 原本的 4 個雪場按鈕卡片 (2x2 排列) -->
         <div class="weather-cards-grid">
             
-            <!-- 第一區：燒額山 -->
-            <div class="weather-spot-card" onclick="goToTrailMap('area1')">
-                <div class="spot-header">
-                    <div class="spot-name">燒額山</div>
-                    <div class="spot-zone">(第一區)</div>
-                </div>
-                <div class="spot-metrics">
-                    <div class="metric-row">
-                        <span class="metric-label">氣溫</span>
-                        <span class="metric-value">
-                            <span class="weather-icon" id="w-icon-yakebitai">--</span>
-                            <span id="w-temp-yakebitai">--°C</span>
-                        </span>
-                    </div>
-                    <div class="metric-row">
-                        <span class="metric-label">風速</span>
-                        <span class="metric-value" id="w-wind-yakebitai">-- m/s</span>
-                    </div>
-                    <div class="metric-row">
-                        <span class="metric-label">積雪</span>
-                        <span class="metric-value snow-highlight" id="w-snow-yakebitai">-- cm</span>
-                    </div>
-                </div>
-            </div>
+<!-- 1. 第一區：燒額山 -->
+<div class="weather-spot-card card-zone1" onclick="jumpToTrailMap('area1')">
+    <div class="spot-header">
+        <div class="spot-name">燒額山</div>
+        <div class="spot-zone">(第一區)</div>
+    </div>
+    <div class="spot-metrics">
+        <div class="metric-row">
+            <span class="metric-label">氣溫</span>
+            <span class="metric-val"><span id="w-yakebitai-icon" class="weather-icon">--</span> <span id="w-yakebitai-temp">--°C</span></span>
+        </div>
+        <div class="metric-row">
+            <span class="metric-label">風速</span>
+            <span id="w-yakebitai-wind" class="metric-val">-- m/s</span>
+        </div>
+        <div class="metric-row">
+            <span class="metric-label">積雪</span>
+            <span id="w-yakebitai-snow" class="metric-val snow-highlight">-- cm</span>
+        </div>
+        <div class="metric-row">
+            <span class="metric-label">降雪</span>
+            <span id="w-yakebitai-snowfall" class="metric-val" style="color: #0284c7;">-- cm</span>
+        </div>
+    </div>
+</div>
 
-            <!-- 第二區：一之瀨 -->
-            <div class="weather-spot-card" onclick="goToTrailMap('area2')">
-                <div class="spot-header">
-                    <div class="spot-name">一之瀨家庭</div>
-                    <div class="spot-zone">(第二區)</div>
-                </div>
-                <div class="spot-metrics">
-                    <div class="metric-row">
-                        <span class="metric-label">氣溫</span>
-                        <span class="metric-value">
-                            <span class="weather-icon" id="w-icon-ichinose">--</span>
-                            <span id="w-temp-ichinose">--°C</span>
-                        </span>
-                    </div>
-                    <div class="metric-row">
-                        <span class="metric-label">風速</span>
-                        <span class="metric-value" id="w-wind-ichinose">-- m/s</span>
-                    </div>
-                    <div class="metric-row">
-                        <span class="metric-label">積雪</span>
-                        <span class="metric-value snow-highlight" id="w-snow-ichinose">-- cm</span>
-                    </div>
-                </div>
-            </div>
+<!-- 2. 第二區：一之瀨 -->
+<div class="weather-spot-card card-zone2" onclick="jumpToTrailMap('area2')">
+    <div class="spot-header">
+        <div class="spot-name">一之瀨</div>
+        <div class="spot-zone">(第二區)</div>
+    </div>
+    <div class="spot-metrics">
+        <div class="metric-row">
+            <span class="metric-label">氣溫</span>
+            <span class="metric-val"><span id="w-ichinose-icon" class="weather-icon">--</span> <span id="w-ichinose-temp">--°C</span></span>
+        </div>
+        <div class="metric-row">
+            <span class="metric-label">風速</span>
+            <span id="w-ichinose-wind" class="metric-val">-- m/s</span>
+        </div>
+        <div class="metric-row">
+            <span class="metric-label">積雪</span>
+            <span id="w-ichinose-snow" class="metric-val snow-highlight">-- cm</span>
+        </div>
+        <div class="metric-row">
+            <span class="metric-label">降雪</span>
+            <span id="w-ichinose-snowfall" class="metric-val" style="color: #0284c7;">-- cm</span>
+        </div>
+    </div>
+</div>
 
-            <!-- 第三區：蓮池 -->
-            <div class="weather-spot-card" onclick="goToTrailMap('area3')">
-                <div class="spot-header">
-                    <div class="spot-name">蓮池</div>
-                    <div class="spot-zone">(第三區)</div>
-                </div>
-                <div class="spot-metrics">
-                    <div class="metric-row">
-                        <span class="metric-label">氣溫</span>
-                        <span class="metric-value">
-                            <span class="weather-icon" id="w-icon-hasuike">--</span>
-                            <span id="w-temp-hasuike">--°C</span>
-                        </span>
-                    </div>
-                    <div class="metric-row">
-                        <span class="metric-label">風速</span>
-                        <span class="metric-value" id="w-wind-hasuike">-- m/s</span>
-                    </div>
-                    <div class="metric-row">
-                        <span class="metric-label">積雪</span>
-                        <span class="metric-value snow-highlight" id="w-snow-hasuike">-- cm</span>
-                    </div>
-                </div>
-            </div>
+<!-- 3. 第三區：蓮池 -->
+<div class="weather-spot-card card-zone3" onclick="jumpToTrailMap('area3')">
+    <div class="spot-header">
+        <div class="spot-name">蓮池</div>
+        <div class="spot-zone">(第三區)</div>
+    </div>
+    <div class="spot-metrics">
+        <div class="metric-row">
+            <span class="metric-label">氣溫</span>
+            <span class="metric-val"><span id="w-hasuike-icon" class="weather-icon">--</span> <span id="w-hasuike-temp">--°C</span></span>
+        </div>
+        <div class="metric-row">
+            <span class="metric-label">風速</span>
+            <span id="w-hasuike-wind" class="metric-val">-- m/s</span>
+        </div>
+        <div class="metric-row">
+            <span class="metric-label">積雪</span>
+            <span id="w-hasuike-snow" class="metric-val snow-highlight">-- cm</span>
+        </div>
+        <div class="metric-row">
+            <span class="metric-label">降雪</span>
+            <span id="w-hasuike-snowfall" class="metric-val" style="color: #0284c7;">-- cm</span>
+        </div>
+    </div>
+</div>
 
-            <!-- 第四區：橫手山 -->
-            <div class="weather-spot-card" onclick="goToTrailMap('area4')">
-                <div class="spot-header">
-                    <div class="spot-name">橫手山</div>
-                    <div class="spot-zone">(第四區)</div>
-                </div>
-                <div class="spot-metrics">
-                    <div class="metric-row">
-                        <span class="metric-label">氣溫</span>
-                        <span class="metric-value">
-                            <span class="weather-icon" id="w-icon-yokoteyama">--</span>
-                            <span id="w-temp-yokoteyama">--°C</span>
-                        </span>
-                    </div>
-                    <div class="metric-row">
-                        <span class="metric-label">風速</span>
-                        <span class="metric-value" id="w-wind-yokoteyama">-- m/s</span>
-                    </div>
-                    <div class="metric-row">
-                        <span class="metric-label">積雪</span>
-                        <span class="metric-value snow-highlight" id="w-snow-yokoteyama">-- cm</span>
-                    </div>
-                </div>
-            </div>
-
+<!-- 4. 第四區：橫手山 -->
+<div class="weather-spot-card card-zone4" onclick="jumpToTrailMap('area4')">
+    <div class="spot-header">
+        <div class="spot-name">橫手山</div>
+        <div class="spot-zone">(第四區)</div>
+    </div>
+    <div class="spot-metrics">
+        <div class="metric-row">
+            <span class="metric-label">氣溫</span>
+            <span class="metric-val"><span id="w-yokoteyama-icon" class="weather-icon">--</span> <span id="w-yokoteyama-temp">--°C</span></span>
+        </div>
+        <div class="metric-row">
+            <span class="metric-label">風速</span>
+            <span id="w-yokoteyama-wind" class="metric-val">-- m/s</span>
+        </div>
+        <div class="metric-row">
+            <span class="metric-label">積雪</span>
+            <span id="w-yokoteyama-snow" class="metric-val snow-highlight">-- cm</span>
+        </div>
+        <div class="metric-row">
+            <span class="metric-label">降雪</span>
+            <span id="w-yokoteyama-snowfall" class="metric-val" style="color: #0284c7;">-- cm</span>
+        </div>
+    </div>
+</div>
         </div>
     </div>
 </div>
@@ -1721,7 +1724,7 @@ document.addEventListener("DOMContentLoaded", function() {
             // (B) 更新第一區～第四區纜車運行狀況框
             renderLiftStatusBox(data.lift_status);
 
-            // (C) 更新 4 張雪場按鈕卡片
+// (C) 更新 4 張雪場按鈕卡片
             const spots = ['yakebitai', 'ichinose', 'hasuike', 'yokoteyama'];
             spots.forEach(spotKey => {
                 const spotData = data[spotKey];
@@ -1730,11 +1733,13 @@ document.addEventListener("DOMContentLoaded", function() {
                     const tempEl = document.getElementById(`w-temp-${spotKey}`);
                     const windEl = document.getElementById(`w-wind-${spotKey}`);
                     const snowEl = document.getElementById(`w-snow-${spotKey}`);
+                    const snowfallEl = document.getElementById(`w-snowfall-${spotKey}`); // 👈 新增這行
 
                     if (iconEl && spotData.icon) iconEl.innerText = spotData.icon;
                     if (tempEl && spotData.temp) tempEl.innerText = spotData.temp;
                     if (windEl && spotData.wind) windEl.innerText = spotData.wind;
                     if (snowEl && spotData.snow) snowEl.innerText = spotData.snow;
+                    if (snowfallEl) snowfallEl.innerText = spotData.snowfall || '-- cm'; // 👈 新增這行
                 }
             });
         })
