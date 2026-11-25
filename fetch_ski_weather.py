@@ -52,35 +52,44 @@ def parse_weathernews_spot(page, spot_key, url):
         page.goto(url, wait_until="domcontentloaded", timeout=30000)
         page.wait_for_timeout(4000)
 
+# 1. 直接從預報表區塊內尋找第一個帶有 Weathernews 天氣底色（橘/灰/藍）或圖示的方塊
         weather_cell_info = page.evaluate("""() => {
-            const allEls = Array.from(document.querySelectorAll('th, td, div, span, p'));
-            const labelEl = allEls.find(el => el.textContent.trim() === '天気' && el.children.length === 0);
-            if (!labelEl) return null;
+            // 定位「スキー場の天気」標題下方的預報表區塊
+            const headings = Array.from(document.querySelectorAll('h2, h3, div, p'));
+            const titleEl = headings.find(el => el.textContent.trim() === 'スキー場の天気');
+            const container = titleEl ? titleEl.parentElement : document.body;
 
-            let row = labelEl.closest('tr') || labelEl.parentElement;
-            if (row && row.textContent.trim() === '天気' && row.parentElement) {
-                row = row.parentElement;
-            }
-            if (!row) return null;
+            const imgs = Array.from(container.querySelectorAll('img'));
+            const svgs = Array.from(container.querySelectorAll('svg'));
+            const boxes = Array.from(container.querySelectorAll('div, td, span'));
 
-            const img = row.querySelector('img');
-            const svg = row.querySelector('svg');
-            const boxes = Array.from(row.querySelectorAll('div, td, span'));
+            let firstImgSrc = imgs.length > 0 ? (imgs[0].src || '') : '';
+            let firstImgAlt = imgs.length > 0 ? (imgs[0].alt || '') : '';
+            let firstSvgClass = svgs.length > 0 ? (svgs[0].getAttribute('class') || '') : '';
 
-            let bgColors = [];
+            // 找出第一個具備非白、非透明背景色的天氣小方塊 (Weathernews 晴天為橘色 rgb(243, 130, 0) / rgb(255, ...))
+            let firstWeatherBg = '';
             for (const b of boxes) {
-                const bg = window.getComputedStyle(b).backgroundColor;
-                if (bg && bg !== 'rgba(0, 0, 0, 0)' && bg !== 'rgb(255, 255, 255)') {
-                    bgColors.push(bg);
+                const rect = b.getBoundingClientRect();
+                // 限制大小在天氣圖示方塊的合理範圍內 (寬高約 20px ~ 80px)
+                if (rect.width >= 20 && rect.width <= 90 && rect.height >= 20 && rect.height <= 90) {
+                    const bg = window.getComputedStyle(b).backgroundColor;
+                    if (bg && bg !== 'rgba(0, 0, 0, 0)' && bg !== 'rgb(255, 255, 255)' && bg !== 'rgb(245, 245, 245)') {
+                        firstWeatherBg = bg;
+                        break;
+                    }
                 }
             }
+
             return {
-                imgSrc: img ? (img.src || '') : '',
-                imgAlt: img ? (img.alt || '') : '',
-                svgClass: svg ? (svg.getAttribute('class') || '') : '',
-                bgColors: bgColors
+                imgSrc: firstImgSrc,
+                imgAlt: firstImgAlt,
+                svgClass: firstSvgClass,
+                bgColor: firstWeatherBg
             };
         }""")
+
+        print(f"[{spot_key}] 天氣方塊偵測結果: {weather_cell_info}")
 
         visible_text = page.inner_text("body")
         lines = [line.strip() for line in visible_text.splitlines() if line.strip()]
@@ -110,10 +119,10 @@ def parse_weathernews_spot(page, spot_key, url):
                     spot_data["snow"] = f"{snow_val} cm"
                     snow_num = float(snow_val)
 
-        icon_found = ""
+icon_found = ""
         if weather_cell_info:
             combined = f"{weather_cell_info.get('imgAlt', '')} {weather_cell_info.get('imgSrc', '')} {weather_cell_info.get('svgClass', '')}".lower()
-            bgs = " ".join(weather_cell_info.get("bgColors", []))
+            bg = weather_cell_info.get("bgColor", "")
 
             if any(k in combined for k in ["晴", "sun", "clear", "/100", "_100", "101"]):
                 icon_found = "☀️"
@@ -124,16 +133,23 @@ def parse_weathernews_spot(page, spot_key, url):
             elif any(k in combined for k in ["雨", "rain", "/300", "_300"]):
                 icon_found = "🌧️"
 
-            if not icon_found and bgs:
-                m_rgb = re.search(r"rgb\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*\)", bgs)
+            if not icon_found and bg:
+                m_rgb = re.search(r"rgba?\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)", bg)
                 if m_rgb:
                     r, g, b = int(m_rgb.group(1)), int(m_rgb.group(2)), int(m_rgb.group(3))
-                    if r > 200 and g > 90 and b < 80:
+                    if r > 200 and g > 80 and b < 90:
+                        # 鮮明橘色方塊 = 晴天
                         icon_found = "☀️"
-                    elif b > 180 and r < 120:
-                        icon_found = "❄️" if snow_num > 0 else "🌧️"
-                    elif abs(r - g) < 25 and abs(g - b) < 25 and 100 < r < 210:
+                    elif b > 180 and r >= 95 and g >= 145:
+                        # 淺天藍色方塊 (高亮度、R 與 G 值偏高) = 下雪
+                        icon_found = "❄️"
+                    elif b > 180 and r < 95:
+                        # 深邃純藍色方塊 (R 值極低、色彩飽和) = 下雨
+                        icon_found = "🌧️"
+                    elif abs(r - g) < 25 and abs(g - b) < 25 and 90 < r < 220:
+                        # 灰色方塊 = 陰天
                         icon_found = "☁️"
+
 
         if icon_found:
             spot_data["icon"] = icon_found
