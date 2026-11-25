@@ -13,25 +13,30 @@ WEATHERNEWS_SPOTS = {
 
 SHIGA_LIFT_URL = "https://www.shigakogen-ski.or.jp/lift/index.php"
 
+# 嚴格依照指定列表直接對應 1 ~ 4 區
 ZONE_RESORTS = [
-    ("第一區", "奧志賀高原", ["奥志賀高原"]),
-    ("第一區", "燒額山", ["焼額山"]),
-    ("第二區", "一之瀨家庭", ["一の瀬ファミリー"]),
-    ("第二區", "一之瀨鑽石", ["一の瀬ダイヤモンド"]),
-    ("第二區", "一之瀨山神", ["一の瀬山の神"]),
-    ("第二區", "高天原猛獁", ["高天ヶ原"]),
-    ("第二區", "冷杉森林貂鼠", ["タンネの森"]),
-    ("第二區", "東館山", ["東館山"]),
-    ("第二區", "寺小屋", ["寺小屋"]),
-    ("第二區", "西館山", ["西館山"]),
-    ("第二區", "發哺 BUNA 平", ["発哺ブナ平", "ブナ平"]),
-    ("第二區", "巨人 (Giant)", ["ジャイアント"]),
-    ("第三區", "蓮池", ["蓮池"]),
-    ("第三區", "丸池", ["丸池"]),
-    ("第三區", "太陽谷", ["サンバレー"]),
-    ("第四區", "木戶池", ["木戸池"]),
-    ("第四區", "熊之湯", ["熊の湯"]),
-    ("第四區", "橫手山・涉峠", ["横手山", "渋峠"]),
+    # 第一區
+    ("第一區", "燒額山", "焼額山スキー場"),
+    ("第一區", "奧志賀高原", "奥志賀高原スキー場"),
+    # 第二區
+    ("第二區", "一之瀨山神", "一の瀬山の神スキー場"),
+    ("第二區", "一之瀨鑽石", "一の瀬ダイヤモンドスキー場"),
+    ("第二區", "一之瀨家庭", "一の瀬ファミリースキー場"),
+    ("第二區", "冷杉森林貂鼠", "タンネの森オコジョスキー場"),
+    ("第二區", "高天原猛獁", "高天ヶ原マンモススキー場"),
+    ("第二區", "寺小屋", "寺小屋スキー場"),
+    ("第二區", "東館山", "東館山スキー場"),
+    ("第二區", "發哺 BUNA 平", "発哺ブナ平スキー場"),
+    # 第三區
+    ("第三區", "西館山", "西館山スキー場"),
+    ("第三區", "巨人 (Giant)", "ジャイアントスキー場"),
+    ("第三區", "蓮池", "蓮池スキー場"),
+    ("第三區", "丸池", "丸池スキー場"),
+    ("第三區", "太陽谷", "サンバレースキー場"),
+    # 第四區
+    ("第四區", "涉峠", "渋峠スキー場"),
+    ("第四區", "橫手山", "横手山スキー場"),
+    ("第四區", "熊之湯", "熊の湯スキー場"),
 ]
 
 
@@ -145,7 +150,7 @@ def parse_weathernews_spot(page, spot_key, url):
 
 
 def parse_shiga_lifts_and_night(page):
-    """使用純視覺文字逐行掃描志賀高原索道協會官網的纜車與夜滑狀態"""
+    """直接依指定雪場全名對照表，逐行歸類 1~4 區纜車與夜滑狀態"""
     night_ski = ["無"]
     lift_status = {
         "第一區": [],
@@ -166,37 +171,37 @@ def parse_shiga_lifts_and_night(page):
         open_night_spots = []
 
         for idx, line in enumerate(lines):
-            if len(line) <= 25 and ("スキー場" in line or "ゲレンデ" in line or any(
-                line.startswith(kw) for _, _, kws in ZONE_RESORTS for kw in kws
-            )):
-                for z_name, r_name, kws in ZONE_RESORTS:
-                    if any(kw in line for kw in kws):
-                        current_zone = z_name
-                        current_resort = r_name
-                        break
+            # 直接比對指定的 18 座雪場日文全名 (只要這行包含該雪場全名，就立刻切換分區)
+            for z_name, r_name, jp_full_name in ZONE_RESORTS:
+                if jp_full_name in line:
+                    current_zone = z_name
+                    current_resort = r_name
+                    break
 
             if not current_zone or not current_resort:
                 continue
 
+            # 偵測夜滑狀態
             if "ナイター" in line and any(ok in line for ok in ["運行中", "営業中", "○"]):
                 if not any(no in line for no in ["営業なし", "運休", "休止"]):
                     if current_resort not in open_night_spots:
                         open_night_spots.append(current_resort)
 
+            # 偵測纜車列 (前後 3 行視窗合併)
             window_text = " ".join(lines[idx : min(idx + 3, len(lines))])
 
             is_lift_line = bool(re.match(r"^\d{1,2}\s+\S+", line)) or any(
-                k in line for k in ["リフト", "ゴンドラ", "スカイ", "ペア", "トリプル", "クワッド", "ロマンス", "第1", "第2", "第3", "第4", "第5"]
+                k in line for k in ["リフト", "ゴンドラ", "スカイ", "ペア", "トリプル", "クワッド", "ロマンス", "高速", "第1", "第2", "第3", "第4", "第5"]
             )
 
-            if is_lift_line and len(line) <= 45 and any(
+            if is_lift_line and len(line) <= 50 and any(
                 st in window_text for st in ["運行中", "運休中", "見合わせ", "準備中"]
             ):
                 clean_name = re.sub(r"^\d{1,2}\s+", "", line)
-                clean_name = re.split(r"\s+[A-Za-z○×]", clean_name)[0].strip()
+                clean_name = re.split(r"\s+[A-Za-z○×△]", clean_name)[0].strip()
 
                 if len(clean_name) >= 2 and not any(
-                    bad in clean_name for bad in ["運行", "運休", "見合わせ", "最終更新", "天気", "気温", "積雪", "スキー場"]
+                    bad in clean_name for bad in ["運行", "運休", "見合わせ", "準備中", "最終更新", "天気", "気温", "積雪", "スキー場"]
                 ):
                     if "運行中" in window_text:
                         status_zh = "運行中"
@@ -273,3 +278,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
