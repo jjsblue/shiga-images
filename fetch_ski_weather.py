@@ -47,21 +47,20 @@ ZONE_RESORTS = {
 
 
 def map_weather_icon(text):
-    if "雪" in text:
+    if "雪" in text or "snow" in text.lower():
         return "❄️"
-    if "雨" in text:
+    if "雨" in text or "rain" in text.lower():
         return "🌧️"
-    if "晴" in text and "曇" in text:
+    if ("晴" in text and "曇" in text) or "partly" in text.lower():
         return "⛅"
-    if "晴" in text:
+    if "晴" in text or "sun" in text.lower() or "clear" in text.lower():
         return "☀️"
-    if "曇" in text:
+    if "曇" in text or "cloud" in text.lower():
         return "☁️"
     return "🏔️"
 
 
-def parse_weathernews_visible_text(page, spot_key, url):
-    """所見即所得：直接讀取瀏覽器畫面上渲染出來的純文字，擷取 天気 / 気温 / 風 / 降雪"""
+def parse_weathernews_spot(page, spot_key, url):
     spot_data = {
         "icon": "--",
         "temp": "--°C",
@@ -70,93 +69,87 @@ def parse_weathernews_visible_text(page, spot_key, url):
     }
     try:
         page.goto(url, wait_until="domcontentloaded", timeout=30000)
-        page.wait_for_timeout(4000)  # 等待畫面文字渲染完成
+        page.wait_for_timeout(4500)
 
-        # 稍微往下捲動觸發懶載入區塊
-        page.evaluate("window.scrollBy(0, 600)")
-        page.wait_for_timeout(1000)
-
-        # 直接取得使用者眼睛在畫面上看到的純文字 (依視覺換行切分)
+        # 取得畫面上所有可見文字並按行切分
         visible_text = page.inner_text("body")
         lines = [line.strip() for line in visible_text.splitlines() if line.strip()]
-        joined = " | ".join(lines)
 
-        # 輔助函式：在畫面文字行中尋找「標籤」後方緊接的數值/文字
-        def find_value_after_label(labels, pattern, max_lookahead=3):
+        # 印出前 80 行實際文字到 GitHub Actions Log，方便精準核對
+        print(f"=== [{spot_key}] 畫面文字前 80 行 ===")
+        for i, l in enumerate(lines[:80]):
+            print(f"  L{i:02d}: {l}")
+
+        # 專門針對 Weathernews 橫向預報表：
+        # 標題行通常是 "気温" / "気温(℃)"、"風" / "風(m/s)"、"降雪" / "降雪(cm)"
+        # 緊接在標題行後方的第 1~3 行就是第一個時段的純數字！
+        def extract_row_first_number(label_prefixes, allow_negative=False):
+            num_pat = r"^([\-−+]?\d+(?:\.\d+)?)$" if allow_negative else r"^(\d+(?:\.\d+)?)$"
+            inline_pat = (
+                r"(?:気温|風|降雪)[^\d\-+]{0,10}([\-−+]?\d+(?:\.\d+)?)"
+                if allow_negative
+                else r"(?:気温|風|降雪)[^\d]{0,10}(\d+(?:\.\d+)?)"
+            )
             for idx, line in enumerate(lines):
-                if any(lbl == line or line.startswith(lbl) for lbl in labels):
-                    # 1. 先檢查同一行 (例如 "気温 -5℃" 或 "降雪 10cm")
-                    m_same = re.search(pattern, line)
-                    if m_same:
-                        return m_same.group(1)
-                    # 2. 再往下檢查緊接的 1~3 行 (例如上一行是 "気温"，下一行是 "-5℃")
-                    for offset in range(1, max_lookahead + 1):
-                        if idx + offset < len(lines):
-                            m_next = re.search(pattern, lines[idx + offset])
+                # 排除過長的說明文，只鎖定表格列標題
+                if len(line) <= 15 and any(line.startswith(p) for p in label_prefixes):
+                    # 情況 A：同一行內有數字 (例如 "降雪 0cm" 或 "気温 -3")
+                    m_in = re.search(inline_pat, line)
+                    if m_in:
+                        return m_in.group(1)
+                    # 情況 B：標題在獨立一行，數值在緊接的下一行 (橫向表格最常見)
+                    for step in range(1, 4):
+                        if idx + step < len(lines):
+                            candidate = lines[idx + step].replace("℃", "").replace("cm", "").replace("m/s", "").strip()
+                            m_next = re.match(num_pat, candidate)
                             if m_next:
                                 return m_next.group(1)
             return None
 
-        # 1. 抓取「天気」
-        weather_str = find_value_after_label(
-            ["天気", "天候"],
-            r"(晴れ|曇り|雪|雨|晴時々曇|曇時々晴|曇時々雪|雪時々曇|晴のち曇|曇のち雪|小雪|大雪|吹雪)",
-        )
-        if not weather_str:
-            # 備援：從頁面上天氣圖示的 alt 屬性取得
-            weather_str = page.evaluate("""() => {
-                const imgs = Array.from(document.querySelectorAll('img[alt]'));
-                for (const img of imgs) {
-                    const alt = img.alt.trim();
-                    if (/^(晴れ|曇り|雪|雨|晴|曇)/.test(alt) && alt.length <= 8) return alt;
+        # 1. 抓 気温 (允許負數)
+        t_val = extract_row_first_number(["気温"], allow_negative=True)
+        if t_val is not None:
+            spot_data["temp"] = f"{t_val.replace('−', '-')}°C"
+
+        # 2. 抓 風 (不允許負數)
+        w_val = extract_row_first_number(["風"], allow_negative=False)
+        if w_val is not None:
+            spot_data["wind"] = f"➤ {w_val} m/s"
+
+        # 3. 抓 降雪 (不允許負數，避免抓到其他區塊的 25cm)
+        s_val = extract_row_first_number(["降雪"], allow_negative=False)
+        if s_val is not None:
+            spot_data["snow"] = f"{s_val} cm"
+
+        # 4. 抓 天気 圖示 (檢查 "天気" 標題列附近的 img alt 或 src 圖檔編號)
+        weather_info = page.evaluate("""() => {
+            const imgs = Array.from(document.querySelectorAll('img'));
+            for (const img of imgs) {
+                const alt = (img.alt || '').trim();
+                const src = (img.src || '').toLowerCase();
+                if (/^(晴れ|曇り|雪|雨|晴|曇)/.test(alt) && alt.length <= 10) {
+                    return alt;
                 }
-                return null;
-            }""")
-        if weather_str:
-            spot_data["icon"] = map_weather_icon(weather_str)
-
-        # 2. 抓取「気温」
-        temp_val = find_value_after_label(
-            ["気温"],
-            r"([\-−+]?\d+(?:\.\d+)?)\s*[℃°C]?",
-        )
-        if not temp_val:
-            # 備援：找畫面上第一個出現的 ℃ 數值
-            m_t = re.search(r"([\-−+]?\d+(?:\.\d+)?)\s*℃", joined)
-            if m_t:
-                temp_val = m_t.group(1)
-        if temp_val:
-            spot_data["temp"] = f"{temp_val.replace('−', '-')}°C"
-
-        # 3. 抓取「風」 (填入風速欄位)
-        wind_val = find_value_after_label(
-            ["風", "風速", "風向・風速"],
-            r"(\d+(?:\.\d+)?)\s*(?:m/s|m)?",
-        )
-        if not wind_val:
-            m_w = re.search(r"(\d+(?:\.\d+)?)\s*m/s", joined)
-            if m_w:
-                wind_val = m_w.group(1)
-        if wind_val:
-            spot_data["wind"] = f"➤ {wind_val} m/s"
-
-        # 4. 抓取「降雪」 (填入積雪那欄)
-        snow_val = find_value_after_label(
-            ["降雪", "降雪量", "積雪", "積雪深"],
-            r"(\d+)\s*(?:cm)?",
-        )
-        if not snow_val:
-            m_s = re.search(r"(?:降雪|積雪)[^0-9]{0,10}(\d+)\s*cm", joined)
-            if m_s:
-                snow_val = m_s.group(1)
-        if snow_val:
-            spot_data["snow"] = f"{snow_val} cm"
-
-        print(f"[{spot_key}] 視覺文字擷取結果: {spot_data}")
+                // Weathernews 天氣小圖示網址通常包含 wx / weather 關鍵字
+                if ((src.includes('/wx') || src.includes('weather')) && alt) {
+                    return alt;
+                }
+            }
+            return '';
+        }""")
+        if weather_info:
+            spot_data["icon"] = map_weather_icon(weather_info)
+        else:
+            for idx, line in enumerate(lines):
+                if line in ["天気", "天候"] and idx + 1 < len(lines):
+                    if any(k in lines[idx + 1] for k in ["晴", "曇", "雪", "雨"]):
+                        spot_data["icon"] = map_weather_icon(lines[idx + 1])
+                        break
 
     except Exception as e:
         print(f"抓取 {spot_key} ({url}) 異常: {e}")
 
+    print(f"[{spot_key}] 最終寫入: {spot_data}")
     return spot_data
 
 
@@ -266,11 +259,9 @@ def main():
             )
         )
 
-        # 1. 依序讀取 4 個 Weathernews 畫面的 天気 / 気温 / 風 / 降雪
         for spot_key, url in WEATHERNEWS_SPOTS.items():
-            result[spot_key] = parse_weathernews_visible_text(page, spot_key, url)
+            result[spot_key] = parse_weathernews_spot(page, spot_key, url)
 
-        # 2. 讀取索道協會官網的夜滑與 1-4 區纜車狀態
         night_ski, lift_status = parse_shiga_lifts_and_night(page)
         result["night_ski"] = night_ski
         result["lift_status"] = lift_status
