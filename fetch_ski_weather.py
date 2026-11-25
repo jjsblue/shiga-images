@@ -13,7 +13,6 @@ WEATHERNEWS_SPOTS = {
 
 SHIGA_LIFT_URL = "https://www.shigakogen-ski.or.jp/lift/index.php"
 
-# 1-4區與各雪場關鍵字對照 (順序越精確放越前面，避免「一の瀬」誤判成「一の瀬ファミリー」)
 ZONE_RESORTS = [
     ("第一區", "奧志賀高原", ["奥志賀高原"]),
     ("第一區", "燒額山", ["焼額山"]),
@@ -48,7 +47,6 @@ def parse_weathernews_spot(page, spot_key, url):
         page.goto(url, wait_until="domcontentloaded", timeout=30000)
         page.wait_for_timeout(4000)
 
-        # 1. 偵測「天気」儲存格右邊第一個天氣方塊的圖檔代碼或背景色
         weather_cell_info = page.evaluate("""() => {
             const allEls = Array.from(document.querySelectorAll('th, td, div, span, p'));
             const labelEl = allEls.find(el => el.textContent.trim() === '天気' && el.children.length === 0);
@@ -79,7 +77,6 @@ def parse_weathernews_spot(page, spot_key, url):
             };
         }""")
 
-        # 2. 取得氣溫、風速、降雪文字
         visible_text = page.inner_text("body")
         lines = [line.strip() for line in visible_text.splitlines() if line.strip()]
 
@@ -108,7 +105,6 @@ def parse_weathernews_spot(page, spot_key, url):
                     spot_data["snow"] = f"{snow_val} cm"
                     snow_num = float(snow_val)
 
-        # 3. 判定天氣圖示
         icon_found = ""
         if weather_cell_info:
             combined = f"{weather_cell_info.get('imgAlt', '')} {weather_cell_info.get('imgSrc', '')} {weather_cell_info.get('svgClass', '')}".lower()
@@ -158,12 +154,10 @@ def parse_shiga_lifts_and_night(page):
         "第四區": [],
     }
 
-     try:
-        # 改用 domcontentloaded 避免因官網外部追蹤碼或社群套件卡住 networkidle 而超時
+    try:
         page.goto(SHIGA_LIFT_URL, wait_until="domcontentloaded", timeout=30000)
-        page.wait_for_timeout(5000)  # 等待前端 JS 將各區纜車列表渲染進畫面
+        page.wait_for_timeout(5000)
 
-        # 取得頁面上所有可見文字並按行切分 (徹底避開複雜的 div/table 嵌套)
         visible_text = page.inner_text("body")
         lines = [line.strip() for line in visible_text.splitlines() if line.strip()]
 
@@ -172,8 +166,6 @@ def parse_shiga_lifts_and_night(page):
         open_night_spots = []
 
         for idx, line in enumerate(lines):
-            # 1. 偵測雪場主標題切換 (例如: "横手山スキー場" 或 "焼額山スキー場")
-            # 限制長度 <= 25 字，避免誤判頁首導覽列或長說明文
             if len(line) <= 25 and ("スキー場" in line or "ゲレンデ" in line or any(
                 line.startswith(kw) for _, _, kws in ZONE_RESORTS for kw in kws
             )):
@@ -186,16 +178,13 @@ def parse_shiga_lifts_and_night(page):
             if not current_zone or not current_resort:
                 continue
 
-            # 2. 偵測夜滑狀態
             if "ナイター" in line and any(ok in line for ok in ["運行中", "営業中", "○"]):
                 if not any(no in line for no in ["営業なし", "運休", "休止"]):
                     if current_resort not in open_night_spots:
                         open_night_spots.append(current_resort)
 
-            # 3. 偵測纜車列 (把前後 2 行合併成一個視窗，防止「纜車名」與「運行中/運休中」被拆成上下兩行)
             window_text = " ".join(lines[idx : min(idx + 3, len(lines))])
 
-            # 條件：當前行看起來像纜車名稱 (開頭有數字編號如 "67 横手山第1スカイA線"，或含有纜車關鍵字)
             is_lift_line = bool(re.match(r"^\d{1,2}\s+\S+", line)) or any(
                 k in line for k in ["リフト", "ゴンドラ", "スカイ", "ペア", "トリプル", "クワッド", "ロマンス", "第1", "第2", "第3", "第4", "第5"]
             )
@@ -203,11 +192,9 @@ def parse_shiga_lifts_and_night(page):
             if is_lift_line and len(line) <= 45 and any(
                 st in window_text for st in ["運行中", "運休中", "見合わせ", "準備中"]
             ):
-                # 清理纜車名稱：去掉開頭編號 (如 "67 ") 與後方的英文名稱
                 clean_name = re.sub(r"^\d{1,2}\s+", "", line)
                 clean_name = re.split(r"\s+[A-Za-z○×]", clean_name)[0].strip()
 
-                # 排除狀態詞本身或無關標題
                 if len(clean_name) >= 2 and not any(
                     bad in clean_name for bad in ["運行", "運休", "見合わせ", "最終更新", "天気", "気温", "積雪", "スキー場"]
                 ):
@@ -269,11 +256,9 @@ def main():
             )
         )
 
-        # 1. 抓取 4 個 Weathernews 雪場氣象
         for spot_key, url in WEATHERNEWS_SPOTS.items():
             result[spot_key] = parse_weathernews_spot(page, spot_key, url)
 
-        # 2. 抓取志賀高原索道協會官網的纜車與夜滑
         night_ski, lift_status = parse_shiga_lifts_and_night(page)
         result["night_ski"] = night_ski
         result["lift_status"] = lift_status
