@@ -41,13 +41,13 @@ ZONE_RESORTS = [
 
 
 def get_wind_arrow(wind_raw):
-    """支援 CSS matrix、SVG rotate 角度，以及 Weathernews 方位檔名/類名"""
+    """將 CSS matrix 或 SVG rotate 角度換算為與 Weathernews 畫面一致的 8 方位風向箭頭"""
     if not wind_raw:
         return "➤"
 
     raw_lower = wind_raw.lower()
 
-    # 1. 先比對檔名或 class 裡的方位代碼 (16方位或8方位縮寫)
+    # 1. 先比對檔名或 class 裡的方位代碼
     dir_map = [
         ("nne", "↗"), ("ene", "↗"), ("ne", "↗"),
         ("ese", "↘"), ("sse", "↘"), ("se", "↘"),
@@ -61,7 +61,7 @@ def get_wind_arrow(wind_raw):
         if code in raw_lower:
             return symbol
 
-    # 2. 比對數字編號 (Weathernews 常見 1~16 或 0~15 方位圖示編號)
+    # 2. 比對數字編號
     m_num = re.search(r"(?:wind|arrow|dir)[_\-]?0?(\d{1,2})\b", raw_lower)
     if m_num:
         idx16 = int(m_num.group(1)) % 16
@@ -81,7 +81,8 @@ def get_wind_arrow(wind_raw):
             deg = math.degrees(math.atan2(b, a))
 
     if deg is not None:
-        deg = deg % 360
+        # 加上 180 度修正 Weathernews 原始箭頭圖示的朝向基準 (從 ↗ 修正為一致的 ↙)
+        deg = (deg + 180) % 360
         arrows = ["↑", "↗", "→", "↘", "↓", "↙", "←", "↖"]
         idx = int((deg + 22.5) // 45) % 8
         return arrows[idx]
