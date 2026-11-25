@@ -40,28 +40,53 @@ ZONE_RESORTS = [
 ]
 
 
-def get_wind_arrow(transform_str):
-    """將 CSS matrix 或 SVG rotate 角度換算為 8 方位風向箭頭"""
-    if not transform_str:
+def get_wind_arrow(wind_raw):
+    """支援 CSS matrix、SVG rotate 角度，以及 Weathernews 方位檔名/類名"""
+    if not wind_raw:
         return "➤"
+
+    raw_lower = wind_raw.lower()
+
+    # 1. 先比對檔名或 class 裡的方位代碼 (16方位或8方位縮寫)
+    dir_map = [
+        ("nne", "↗"), ("ene", "↗"), ("ne", "↗"),
+        ("ese", "↘"), ("sse", "↘"), ("se", "↘"),
+        ("ssw", "↙"), ("wsw", "↙"), ("sw", "↙"),
+        ("wnw", "↖"), ("nnw", "↖"), ("nw", "↖"),
+        ("north", "↑"), ("south", "↓"), ("east", "→"), ("west", "←"),
+        ("_n.", "↑"), ("_s.", "↓"), ("_e.", "→"), ("_w.", "←"),
+        ("/n.", "↑"), ("/s.", "↓"), ("/e.", "→"), ("/w.", "←"),
+    ]
+    for code, symbol in dir_map:
+        if code in raw_lower:
+            return symbol
+
+    # 2. 比對數字編號 (Weathernews 常見 1~16 或 0~15 方位圖示編號)
+    m_num = re.search(r"(?:wind|arrow|dir)[_\-]?0?(\d{1,2})\b", raw_lower)
+    if m_num:
+        idx16 = int(m_num.group(1)) % 16
+        arrows16 = ["↑", "↗", "↗", "↗", "→", "↘", "↘", "↘", "↓", "↙", "↙", "↙", "←", "↖", "↖", "↖"]
+        return arrows16[idx16]
+
+    # 3. 比對旋轉角度 rotate(deg) 或 CSS matrix(a, b, ...)
     deg = None
-    m_rot = re.search(r"rotate\(\s*([\-+]?\d+(?:\.\d+)?)", transform_str)
+    m_rot = re.search(r"rotate\(\s*([\-+]?\d+(?:\.\d+)?)", wind_raw)
     if m_rot:
         deg = float(m_rot.group(1))
     else:
-        m_mat = re.search(r"matrix\(\s*([\-+]?\d+(?:\.\d+)?)\s*,\s*([\-+]?\d+(?:\.\d+)?)", transform_str)
+        m_mat = re.search(r"matrix\(\s*([\-+]?\d+(?:\.\d+)?)\s*,\s*([\-+]?\d+(?:\.\d+)?)", wind_raw)
         if m_mat:
             a = float(m_mat.group(1))
             b = float(m_mat.group(2))
             deg = math.degrees(math.atan2(b, a))
 
-    if deg is None:
-        return "➤"
+    if deg is not None:
+        deg = deg % 360
+        arrows = ["↑", "↗", "→", "↘", "↓", "↙", "←", "↖"]
+        idx = int((deg + 22.5) // 45) % 8
+        return arrows[idx]
 
-    deg = deg % 360
-    arrows = ["↑", "↗", "→", "↘", "↓", "↙", "←", "↖"]
-    idx = int((deg + 22.5) // 45) % 8
-    return arrows[idx]
+    return "➤"
 
 
 def parse_weathernews_spot(page, spot_key, url):
@@ -104,16 +129,32 @@ def parse_weathernews_spot(page, spot_key, url):
                 }
             }
 
-            // 抓取第一個風向箭頭的旋轉角度
-            let windTransform = '';
-            const arrowCandidates = Array.from(container.querySelectorAll('svg, img, span, div'));
+// 抓取第一個風向箭頭的旋轉角度或檔名 (深入檢查 SVG 內部子元素與 IMG)
+            let windRaw = '';
+            const arrowCandidates = Array.from(container.querySelectorAll('svg, svg g, svg path, svg polygon, img'));
             for (const el of arrowCandidates) {
                 const rect = el.getBoundingClientRect();
-                if (rect.width >= 8 && rect.width <= 28 && rect.height >= 8 && rect.height <= 28) {
+                // 排除過大的天氣方塊 (天氣方塊通常大於 28px)，鎖定 6px ~ 26px 的小箭頭
+                if (rect.width >= 6 && rect.width <= 26 && rect.height >= 6 && rect.height <= 26) {
                     const styleTransform = window.getComputedStyle(el).transform;
                     const attrTransform = el.getAttribute('transform') || '';
-                    if ((styleTransform && styleTransform !== 'none') || attrTransform.includes('rotate')) {
-                        windTransform = styleTransform !== 'none' ? styleTransform : attrTransform;
+                    const src = el.getAttribute('src') || '';
+                    const cls = el.getAttribute('class') || '';
+
+                    if (styleTransform && styleTransform !== 'none') {
+                        windRaw = styleTransform;
+                        break;
+                    }
+                    if (attrTransform.includes('rotate')) {
+                        windRaw = attrTransform;
+                        break;
+                    }
+                    if (src && (src.includes('wind') || src.includes('arrow') || /\/[nsew]{1,3}\./i.test(src))) {
+                        windRaw = src;
+                        break;
+                    }
+                    if (cls && (cls.includes('wind') || cls.includes('arrow'))) {
+                        windRaw = cls;
                         break;
                     }
                 }
@@ -124,10 +165,12 @@ def parse_weathernews_spot(page, spot_key, url):
                 imgAlt: firstImgAlt,
                 svgClass: firstSvgClass,
                 bgColor: firstWeatherBg,
-                windTransform: windTransform
+                windTransform: windRaw
             };
         }""")
 
+        print(f"[{spot_key}] 風向原始偵測: {visual_info.get('windTransform')}")
+        
         visible_text = page.inner_text("body")
         lines = [line.strip() for line in visible_text.splitlines() if line.strip()]
 
