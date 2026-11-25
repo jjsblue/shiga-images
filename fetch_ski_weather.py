@@ -60,8 +60,8 @@ def map_weather_icon(text):
     return "🏔️"
 
 
-def parse_weathernews_page(page, url):
-    """解析單一 Weathernews 雪場頁面的 天氣、氣溫、風速、積雪"""
+def parse_weathernews_page(page, spot_key, url):
+    """針對 Weathernews 滑雪場頁面精準擷取 天氣、氣溫、風速、積雪"""
     spot_data = {
         "icon": "--",
         "temp": "--°C",
@@ -69,54 +69,75 @@ def parse_weathernews_page(page, url):
         "snow": "-- cm",
     }
     try:
-        page.goto(url, wait_until="domcontentloaded", timeout=25000)
-        page.wait_for_timeout(3000)  # 等待前端數據渲染
-        soup = BeautifulSoup(page.content(), "html.parser")
+        page.goto(url, wait_until="networkidle", timeout=30000)
+        page.wait_for_timeout(3000)
 
+        html = page.content()
+        soup = BeautifulSoup(html, "html.parser")
+
+        # 優先檢查 Weathernews 頁面是否含有 __NEXT_DATA__ JSON (結構化最準確)
+        next_data_tag = soup.find("script", id="__NEXT_DATA__")
+        if next_data_tag and next_data_tag.string:
+            raw_json = next_data_tag.string
+            # 從 JSON 結構中提取積雪、氣溫、風速
+            m_j_snow = re.search(r'"snow(?:Depth|fall)?"\s*:\s*"?(\d+)"?', raw_json, re.I)
+            m_j_temp = re.search(r'"temp(?:erature)?"\s*:\s*"?([\-−+]?\d+(?:\.\d+)?)"?', raw_json, re.I)
+            m_j_wind = re.search(r'"wind(?:Speed)?"\s*:\s*"?(\d+(?:\.\d+)?)"?', raw_json, re.I)
+            if m_j_snow:
+                spot_data["snow"] = f"{m_j_snow.group(1)} cm"
+            if m_j_temp:
+                spot_data["temp"] = f"{m_j_temp.group(1).replace('−', '-')}°C"
+            if m_j_wind:
+                spot_data["wind"] = f"➤ {m_j_wind.group(1)} m/s"
+
+        # 移除頁首頁尾與腳本，從渲染後的可見文字擷取主卡片資訊
         for tag in soup.find_all(["nav", "header", "footer", "script", "style"]):
             tag.decompose()
 
         text = soup.get_text(" ", strip=True)
+        print(f"[{spot_key}] 頁面擷取前300字: {text[:300]}")
 
-        # 1. 解析積雪 (例如: 積雪 130cm 或 積雪量 130cm)
-        m_snow = re.search(r"積雪(?:量)?\s*[：:\s]*(\d+)\s*cm", text)
-        if m_snow:
-            spot_data["snow"] = f"{m_snow.group(1)} cm"
+        # 1. 積雪 (例如: 積雪 15cm / 積雪量 15cm / 積雪深 15cm)
+        if spot_data["snow"] == "-- cm":
+            m_snow = re.search(r"積雪(?:量|深)?\s*[：:\s]*(\d+)\s*cm", text)
+            if m_snow:
+                spot_data["snow"] = f"{m_snow.group(1)} cm"
 
-        # 2. 解析氣溫 (例如: 気温 -4℃ 或 -4.5℃)
-        m_temp = re.search(r"気温\s*[：:\s]*([\-−+]?\d+(?:\.\d+)?)\s*[℃°C]", text)
-        if not m_temp:
-            # 備援：抓頁面上第一個出現的攝氏溫度數值
+        # 2. 氣溫 (抓主區域出現的攝氏溫度，例如 -5℃ 或 2.5℃)
+        if spot_data["temp"] == "--°C":
             m_temp = re.search(r"([\-−+]?\d+(?:\.\d+)?)\s*℃", text)
-        if m_temp:
-            val = m_temp.group(1).replace("−", "-")
-            spot_data["temp"] = f"{val}°C"
+            if m_temp:
+                val = m_temp.group(1).replace("−", "-")
+                spot_data["temp"] = f"{val}°C"
 
-        # 3. 解析風速 (例如: 風速 3m/s 或 3.5m/s)
-        m_wind = re.search(r"風速\s*[：:\s]*(\d+(?:\.\d+)?)\s*m/s", text)
-        if not m_wind:
+        # 3. 風速 (Weathernews 通常直接顯示 "3m/s" 或 "3.5m/s" 或 "風 3m/s"，不一定寫"風速"二字)
+        if spot_data["wind"] == "-- m/s":
             m_wind = re.search(r"(\d+(?:\.\d+)?)\s*m/s", text)
-        if m_wind:
-            spot_data["wind"] = f"➤ {m_wind.group(1)} m/s"
+            if m_wind:
+                spot_data["wind"] = f"➤ {m_wind.group(1)} m/s"
 
-        # 4. 解析天氣圖示 (優先從天氣圖示 img alt 或主天氣區塊文字判斷)
+        # 4. 天氣圖示 (比對主區塊內的 img alt 或關鍵字)
         weather_alt = ""
         for img in soup.find_all("img", alt=True):
-            alt = img["alt"]
-            if any(k in alt for k in ["晴", "曇", "雪", "雨"]):
+            alt = img["alt"].strip()
+            if any(k in alt for k in ["晴", "曇", "雪", "雨"]) and len(alt) <= 10:
                 weather_alt = alt
                 break
 
         if weather_alt:
             spot_data["icon"] = map_weather_icon(weather_alt)
         else:
-            m_w = re.search(r"天気\s*[：:\s]*([^\s\d]{1,6})", text)
+            # 從主標題後方的文字找天氣狀態詞
+            m_w = re.search(r"(?:天気|予報)\s*([^\s\d]{1,8})", text)
             if m_w:
                 spot_data["icon"] = map_weather_icon(m_w.group(1))
+            elif any(k in text[:400] for k in ["雪", "晴", "曇", "雨"]):
+                spot_data["icon"] = map_weather_icon(text[:400])
 
     except Exception as e:
         print(f"抓取 Weathernews ({url}) 異常: {e}")
 
+    print(f"[{spot_key}] 最終解析結果: {spot_data}")
     return spot_data
 
 
@@ -230,11 +251,9 @@ def main():
 
         # 1. 依序抓取 4 個 Weathernews 雪場頁面
         for spot_key, url in WEATHERNEWS_SPOTS.items():
-            print(f"正在抓取 {spot_key}: {url}")
-            result[spot_key] = parse_weathernews_page(page, url)
+            result[spot_key] = parse_weathernews_page(page, spot_key, url)
 
         # 2. 抓取索道協會官網的夜滑與 1-4 區纜車狀態
-        print("正在抓取志賀高原索道協會纜車與夜滑狀態...")
         night_ski, lift_status = parse_shiga_lifts_and_night(page)
         result["night_ski"] = night_ski
         result["lift_status"] = lift_status
@@ -245,8 +264,6 @@ def main():
         json.dump(result, f, ensure_ascii=False, indent=2)
         f.flush()
         os.fsync(f.fileno())
-
-    print("雙源資料更新完成：", json.dumps(result, ensure_ascii=False))
 
 
 if __name__ == "__main__":
