@@ -1724,22 +1724,22 @@ document.addEventListener("DOMContentLoaded", function() {
             // (B) 更新第一區～第四區纜車運行狀況框
             renderLiftStatusBox(data.lift_status);
 
-// (C) 更新 4 張雪場按鈕卡片
+// (C) 更新 4 張雪場按鈕卡片 (對應 HTML 的 w-雪場-屬性 格式)
             const spots = ['yakebitai', 'ichinose', 'hasuike', 'yokoteyama'];
             spots.forEach(spotKey => {
                 const spotData = data[spotKey];
                 if (spotData) {
-                    const iconEl = document.getElementById(`w-icon-${spotKey}`);
-                    const tempEl = document.getElementById(`w-temp-${spotKey}`);
-                    const windEl = document.getElementById(`w-wind-${spotKey}`);
-                    const snowEl = document.getElementById(`w-snow-${spotKey}`);
-                    const snowfallEl = document.getElementById(`w-snowfall-${spotKey}`); // 👈 新增這行
+                    const iconEl = document.getElementById(`w-${spotKey}-icon`);
+                    const tempEl = document.getElementById(`w-${spotKey}-temp`);
+                    const windEl = document.getElementById(`w-${spotKey}-wind`);
+                    const snowEl = document.getElementById(`w-${spotKey}-snow`);
+                    const snowfallEl = document.getElementById(`w-${spotKey}-snowfall`);
 
                     if (iconEl && spotData.icon) iconEl.innerText = spotData.icon;
                     if (tempEl && spotData.temp) tempEl.innerText = spotData.temp;
                     if (windEl && spotData.wind) windEl.innerText = spotData.wind;
                     if (snowEl && spotData.snow) snowEl.innerText = spotData.snow;
-                    if (snowfallEl) snowfallEl.innerText = spotData.snowfall || '-- cm'; // 👈 新增這行
+                    if (snowfallEl) snowfallEl.innerText = spotData.snowfall || '-- cm';
                 }
             });
         })
