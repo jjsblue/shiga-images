@@ -41,51 +41,20 @@ ZONE_RESORTS = [
 
 
 def get_wind_arrow(wind_raw):
-    """將 CSS matrix 或 SVG rotate 角度換算為與 Weathernews 畫面一致的 8 方位風向箭頭"""
+    """直接依實際測量到的旋轉角度或方位字串回傳對應箭頭"""
     if not wind_raw:
         return "➤"
 
-    raw_lower = wind_raw.lower()
-
-    # 1. 先比對檔名或 class 裡的方位代碼
-    dir_map = [
-        ("nne", "↗"), ("ene", "↗"), ("ne", "↗"),
-        ("ese", "↘"), ("sse", "↘"), ("se", "↘"),
-        ("ssw", "↙"), ("wsw", "↙"), ("sw", "↙"),
-        ("wnw", "↖"), ("nnw", "↖"), ("nw", "↖"),
-        ("north", "↑"), ("south", "↓"), ("east", "→"), ("west", "←"),
-        ("_n.", "↑"), ("_s.", "↓"), ("_e.", "→"), ("_w.", "←"),
-        ("/n.", "↑"), ("/s.", "↓"), ("/e.", "→"), ("/w.", "←"),
-    ]
-    for code, symbol in dir_map:
-        if code in raw_lower:
-            return symbol
-
-    # 2. 比對數字編號
-    m_num = re.search(r"(?:wind|arrow|dir)[_\-]?0?(\d{1,2})\b", raw_lower)
-    if m_num:
-        idx16 = int(m_num.group(1)) % 16
-        arrows16 = ["↑", "↗", "↗", "↗", "→", "↘", "↘", "↘", "↓", "↙", "↙", "↙", "←", "↖", "↖", "↖"]
-        return arrows16[idx16]
-
-    # 3. 比對旋轉角度 rotate(deg) 或 CSS matrix(a, b, ...)
-    deg = None
-    m_rot = re.search(r"rotate\(\s*([\-+]?\d+(?:\.\d+)?)", wind_raw)
-    if m_rot:
-        deg = float(m_rot.group(1))
-    else:
-        m_mat = re.search(r"matrix\(\s*([\-+]?\d+(?:\.\d+)?)\s*,\s*([\-+]?\d+(?:\.\d+)?)", wind_raw)
-        if m_mat:
-            a = float(m_mat.group(1))
-            b = float(m_mat.group(2))
-            deg = math.degrees(math.atan2(b, a))
-
-    if deg is not None:
-        # 加上 180 度修正 Weathernews 原始箭頭圖示的朝向基準 (從 ↗ 修正為一致的 ↙)
-        deg = (deg + 180) % 360
-        arrows = ["↑", "↗", "→", "↘", "↓", "↙", "←", "↖"]
-        idx = int((deg + 22.5) // 45) % 8
-        return arrows[idx]
+    # 若傳入的是已經算好的角度數字字串 (例如 "ANGLE:202.5")
+    if wind_raw.startswith("ANGLE:"):
+        try:
+            deg = float(wind_raw.split(":")[1]) % 360
+            # 0度=↑, 45度=↗, 90度=→, 135度=↘, 180度=↓, 225度=↙, 270度=←, 315度=↖
+            arrows = ["↑", "↗", "→", "↘", "↓", "↙", "←", "↖"]
+            idx = int((deg + 22.5) // 45) % 8
+            return arrows[idx]
+        except Exception:
+            return "➤"
 
     return "➤"
 
@@ -130,43 +99,42 @@ def parse_weathernews_spot(page, spot_key, url):
                 }
             }
 
-            // 精準定位「風」那一列，並抓出第一個風速格子裡的箭頭元素與旋轉屬性
+            // 直接定位第一個風速數字，抓它正左邊相鄰的箭頭元素並計算實際螢幕旋轉角度
             let windRaw = '';
-            let windDebugHtml = '';
-            const allRows = Array.from(container.querySelectorAll('tr, div'));
-            const windRow = allRows.find(el => {
-                const txt = el.textContent || '';
-                return txt.includes('風') && txt.includes('m/s') && el.children.length >= 2 && txt.length < 300;
-            });
+            const allLeaves = Array.from(container.querySelectorAll('div, span, td, p'))
+                .filter(el => el.children.length === 0 && /^\d+(\.\d+)?$/.test(el.textContent.trim()));
 
-            const searchRoot = windRow || container;
-            const arrowEls = Array.from(searchRoot.querySelectorAll('svg, svg g, svg path, svg polygon, img, span, i'));
-            for (const el of arrowEls) {
-                const rect = el.getBoundingClientRect();
-                if (rect.width >= 6 && rect.width <= 30 && rect.height >= 6 && rect.height <= 30) {
-                    const st = window.getComputedStyle(el).transform;
-                    const tr = el.getAttribute('transform') || '';
-                    const src = el.getAttribute('src') || '';
-                    const cls = el.getAttribute('class') || '';
-
-                    if (st && st !== 'none') {
-                        windRaw = st;
-                        windDebugHtml = el.outerHTML.slice(0, 150);
-                        break;
-                    }
-                    if (tr.includes('rotate')) {
-                        windRaw = tr;
-                        windDebugHtml = el.outerHTML.slice(0, 150);
-                        break;
-                    }
-                    if (src) {
-                        windRaw = src;
-                        windDebugHtml = el.outerHTML.slice(0, 150);
-                        break;
-                    }
-                    if (cls && (cls.includes('wind') || cls.includes('arrow') || cls.includes('dir'))) {
-                        windRaw = cls;
-                        windDebugHtml = el.outerHTML.slice(0, 150);
+            // 預報表每一欄有：時(16)、気温(-6)、風(2)、降雪(0)。我們找包含 svg 或 img 的父層裡的數字
+            for (const numEl of allLeaves) {
+                const parent = numEl.parentElement;
+                if (!parent) continue;
+                const arrowIcon = parent.querySelector('svg, img');
+                if (arrowIcon) {
+                    const rect = arrowIcon.getBoundingClientRect();
+                    // 排除掉大顆的天氣圖示，鎖定風速旁邊的小箭頭 (寬高小於 28px)
+                    if (rect.width > 0 && rect.width <= 28 && rect.height > 0 && rect.height <= 28) {
+                        // 檢查本身以及內部子元素 (g, path) 的 transform 旋轉矩陣
+                        const targets = [arrowIcon, ...Array.from(arrowIcon.querySelectorAll('g, path, polygon'))];
+                        for (const t of targets) {
+                            const st = window.getComputedStyle(t).transform;
+                            if (st && st !== 'none') {
+                                const m = st.match(/matrix\(([^,]+),\s*([^,]+),/);
+                                if (m) {
+                                    const a = parseFloat(m[1]);
+                                    const b = parseFloat(m[2]);
+                                    let deg = Math.atan2(b, a) * (180 / Math.PI);
+                                    // Weathernews 箭頭預設朝上(0度)，若實際頁面朝下則加 180
+                                    windRaw = 'ANGLE:' + ((deg + 360) % 360).toFixed(1);
+                                    break;
+                                }
+                            }
+                        }
+                        // 如果不是靠 transform 旋轉，而是直接換 img src 或 path 座標
+                        if (!windRaw) {
+                            const src = arrowIcon.getAttribute('src') || '';
+                            const d = arrowIcon.querySelector('path, polygon')?.getAttribute('d') || arrowIcon.querySelector('polygon')?.getAttribute('points') || '';
+                            windRaw = src || d;
+                        }
                         break;
                     }
                 }
