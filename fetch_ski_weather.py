@@ -5,14 +5,16 @@ import re
 from bs4 import BeautifulSoup
 from playwright.sync_api import sync_playwright
 
-URL = "https://www.shigakogen-ski.or.jp/lift/index.php"
-
-WEATHER_SPOTS = {
-    "yakebitai": ["焼額山"],
-    "ichinose": ["一の瀬ファミリー", "一の瀬"],
-    "hasuike": ["蓮池"],
-    "yokoteyama": ["横手山"],
+# 1. Weathernews 四大雪場頁面 (負責 4 張天氣卡片的 天氣/氣溫/風速/積雪)
+WEATHERNEWS_SPOTS = {
+    "yakebitai": "https://weathernews.jp/ski/spot/34820/",   # 第一區：燒額山
+    "ichinose": "https://weathernews.jp/ski/spot/34818/",    # 第二區：一之瀨
+    "hasuike": "https://weathernews.jp/ski/spot/34804/",     # 第三區：蓮池
+    "yokoteyama": "https://weathernews.jp/ski/spot/34803/",  # 第四區：橫手山
 }
+
+# 2. 志賀高原索道協會官網 (負責 夜滑開放 與 1-4區纜車運行狀況)
+SHIGA_LIFT_URL = "https://www.shigakogen-ski.or.jp/lift/index.php"
 
 ZONE_RESORTS = {
     "第一區": [
@@ -58,7 +60,146 @@ def map_weather_icon(text):
     return "🏔️"
 
 
-def fetch_with_browser():
+def parse_weathernews_page(page, url):
+    """解析單一 Weathernews 雪場頁面的 天氣、氣溫、風速、積雪"""
+    spot_data = {
+        "icon": "--",
+        "temp": "--°C",
+        "wind": "-- m/s",
+        "snow": "-- cm",
+    }
+    try:
+        page.goto(url, wait_until="domcontentloaded", timeout=25000)
+        page.wait_for_timeout(3000)  # 等待前端數據渲染
+        soup = BeautifulSoup(page.content(), "html.parser")
+
+        for tag in soup.find_all(["nav", "header", "footer", "script", "style"]):
+            tag.decompose()
+
+        text = soup.get_text(" ", strip=True)
+
+        # 1. 解析積雪 (例如: 積雪 130cm 或 積雪量 130cm)
+        m_snow = re.search(r"積雪(?:量)?\s*[：:\s]*(\d+)\s*cm", text)
+        if m_snow:
+            spot_data["snow"] = f"{m_snow.group(1)} cm"
+
+        # 2. 解析氣溫 (例如: 気温 -4℃ 或 -4.5℃)
+        m_temp = re.search(r"気温\s*[：:\s]*([\-−+]?\d+(?:\.\d+)?)\s*[℃°C]", text)
+        if not m_temp:
+            # 備援：抓頁面上第一個出現的攝氏溫度數值
+            m_temp = re.search(r"([\-−+]?\d+(?:\.\d+)?)\s*℃", text)
+        if m_temp:
+            val = m_temp.group(1).replace("−", "-")
+            spot_data["temp"] = f"{val}°C"
+
+        # 3. 解析風速 (例如: 風速 3m/s 或 3.5m/s)
+        m_wind = re.search(r"風速\s*[：:\s]*(\d+(?:\.\d+)?)\s*m/s", text)
+        if not m_wind:
+            m_wind = re.search(r"(\d+(?:\.\d+)?)\s*m/s", text)
+        if m_wind:
+            spot_data["wind"] = f"➤ {m_wind.group(1)} m/s"
+
+        # 4. 解析天氣圖示 (優先從天氣圖示 img alt 或主天氣區塊文字判斷)
+        weather_alt = ""
+        for img in soup.find_all("img", alt=True):
+            alt = img["alt"]
+            if any(k in alt for k in ["晴", "曇", "雪", "雨"]):
+                weather_alt = alt
+                break
+
+        if weather_alt:
+            spot_data["icon"] = map_weather_icon(weather_alt)
+        else:
+            m_w = re.search(r"天気\s*[：:\s]*([^\s\d]{1,6})", text)
+            if m_w:
+                spot_data["icon"] = map_weather_icon(m_w.group(1))
+
+    except Exception as e:
+        print(f"抓取 Weathernews ({url}) 異常: {e}")
+
+    return spot_data
+
+
+def parse_shiga_lifts_and_night(page):
+    """解析志賀高原索道協會官網的 夜滑開放 與 1-4區纜車運行狀況"""
+    night_ski = ["無"]
+    lift_status = {
+        "第一區": [],
+        "第二區": [],
+        "第三區": [],
+        "第四區": [],
+    }
+
+    try:
+        page.goto(SHIGA_LIFT_URL, wait_until="networkidle", timeout=30000)
+        page.wait_for_timeout(3500)
+        soup = BeautifulSoup(page.content(), "html.parser")
+
+        for tag in soup.find_all(["nav", "header", "footer"]):
+            tag.decompose()
+
+        open_night_spots = []
+        blocks = soup.find_all(["section", "article", "div"])
+
+        for block in blocks:
+            text = block.get_text(" ", strip=True)
+            if len(text) < 15 or len(text) > 3500:
+                continue
+
+            for zone_name, resorts in ZONE_RESORTS.items():
+                for resort in resorts:
+                    if any(kw in text for kw in resort["keywords"]):
+                        # 夜滑判斷
+                        if "ナイター" in text and any(
+                            ok in text for ok in ["運行中", "営業中", "○"]
+                        ):
+                            if not any(
+                                no in text
+                                for no in ["ナイター営業なし", "ナイター運休", "ナイター休止"]
+                            ):
+                                if resort["name"] not in open_night_spots:
+                                    open_night_spots.append(resort["name"])
+
+                        # 纜車列表解析
+                        for row in block.find_all(["div", "li", "tr", "dl"]):
+                            row_text = row.get_text(" ", strip=True)
+                            if 6 < len(row_text) < 140 and any(
+                                st in row_text for st in ["運行中", "運休中", "見合わせ", "準備中"]
+                            ):
+                                m_lift = re.match(
+                                    r"^(?:\d+\s+)?([^\sA-Za-z○×]+)", row_text
+                                )
+                                if m_lift:
+                                    lift_name = m_lift.group(1).strip()
+                                    if len(lift_name) >= 2 and not any(
+                                        bad in lift_name
+                                        for bad in ["運行", "運休", "最終更新", "天気", "気温", "積雪"]
+                                    ):
+                                        if "運行中" in row_text:
+                                            status_zh = "運行中"
+                                        elif "見合わせ" in row_text or "準備中" in row_text:
+                                            status_zh = "天候暫停"
+                                        else:
+                                            status_zh = "運行休止"
+
+                                        entry = {
+                                            "resort": resort["name"],
+                                            "lift": lift_name,
+                                            "status": status_zh,
+                                        }
+                                        if entry not in lift_status[zone_name]:
+                                            lift_status[zone_name].append(entry)
+
+        if open_night_spots:
+            night_ski = open_night_spots
+
+    except Exception as e:
+        print(f"抓取志賀高原纜車官網異常: {e}")
+
+    return night_ski, lift_status
+
+
+def main():
     JST = timezone(timedelta(hours=9))
     now_str = datetime.now(JST).strftime("%Y-%m-%d %H:%M JST")
 
@@ -77,124 +218,36 @@ def fetch_with_browser():
         },
     }
 
-    html_content = ""
-    try:
-        with sync_playwright() as p:
-            browser = p.chromium.launch(headless=True)
-            page = browser.new_page(
-                user_agent=(
-                    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-                    "AppleWebKit/537.36 (KHTML, like Gecko) "
-                    "Chrome/122.0.0.0 Safari/537.36"
-                )
+    with sync_playwright() as p:
+        browser = p.chromium.launch(headless=True)
+        page = browser.new_page(
+            user_agent=(
+                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+                "AppleWebKit/537.36 (KHTML, like Gecko) "
+                "Chrome/122.0.0.0 Safari/537.36"
             )
-            page.goto(URL, wait_until="networkidle", timeout=30000)
-            page.wait_for_timeout(4000)
-            html_content = page.content()
-            browser.close()
-    except Exception as e:
-        print(f"瀏覽器開啟網頁異常: {e}")
-        return result
+        )
 
-    soup = BeautifulSoup(html_content, "html.parser")
-    for tag in soup.find_all(["nav", "header", "footer"]):
-        tag.decompose()
+        # 1. 依序抓取 4 個 Weathernews 雪場頁面
+        for spot_key, url in WEATHERNEWS_SPOTS.items():
+            print(f"正在抓取 {spot_key}: {url}")
+            result[spot_key] = parse_weathernews_page(page, url)
 
-    open_night_spots = []
-    blocks = soup.find_all(["section", "article", "div"])
+        # 2. 抓取索道協會官網的夜滑與 1-4 區纜車狀態
+        print("正在抓取志賀高原索道協會纜車與夜滑狀態...")
+        night_ski, lift_status = parse_shiga_lifts_and_night(page)
+        result["night_ski"] = night_ski
+        result["lift_status"] = lift_status
 
-    for block in blocks:
-        text = block.get_text(" ", strip=True)
-        if len(text) < 15 or len(text) > 3500:
-            continue
+        browser.close()
 
-        # 1. 解析四大代表卡片氣象
-        for key, keywords in WEATHER_SPOTS.items():
-            if any(kw in text for kw in keywords) and result[key]["temp"] == "--°C":
-                if "気温" in text or "積雪" in text or "天気" in text:
-                    m_w = re.search(r"天気\s*(?:weather)?\s*([^\s\d]+)", text, re.I)
-                    if m_w:
-                        result[key]["icon"] = map_weather_icon(m_w.group(1))
+    with open("ski_weather.json", "w", encoding="utf-8") as f:
+        json.dump(result, f, ensure_ascii=False, indent=2)
+        f.flush()
+        os.fsync(f.fileno())
 
-                    m_temp = re.search(
-                        r"気温\s*(?:temperature)?\s*([\-−+]?\d+(?:\.\d+)?)\s*[℃°C]?",
-                        text,
-                        re.I,
-                    )
-                    if m_temp:
-                        result[key]["temp"] = f"{m_temp.group(1).replace('−', '-')}°C"
-
-                    m_wind = re.search(
-                        r"風速\s*(?:wind)?\s*(\d+(?:\.\d+)?)\s*m/s", text, re.I
-                    )
-                    if m_wind:
-                        result[key]["wind"] = f"➤ {m_wind.group(1)} m/s"
-                    elif "無風" in text:
-                        result[key]["wind"] = "0 m/s"
-
-                    m_snow = re.search(
-                        r"積雪\s*(?:snowfall)?\s*(\d+)\s*cm", text, re.I
-                    )
-                    if m_snow:
-                        result[key]["snow"] = f"{m_snow.group(1)} cm"
-
-        # 2. 解析全區 1-4 區夜滑與纜車列表 (針對截圖的「編號 + 纜車名 + 運行中/運休中」結構)
-        for zone_name, resorts in ZONE_RESORTS.items():
-            for resort in resorts:
-                if any(kw in text for kw in resort["keywords"]):
-                    # 夜滑判斷
-                    if "ナイター" in text and any(
-                        ok in text for ok in ["運行中", "営業中", "○"]
-                    ):
-                        if not any(
-                            no in text
-                            for no in ["ナイター営業なし", "ナイター運休", "ナイター休止"]
-                        ):
-                            if resort["name"] not in open_night_spots:
-                                open_night_spots.append(resort["name"])
-
-                    # 掃描該區塊內每一行包含「運行中 / 運休中 / 見合わせ」的元素 (支援 div, li, tr, dl)
-                    for row in block.find_all(["div", "li", "tr", "dl"]):
-                        row_text = row.get_text(" ", strip=True)
-                        # 確保是單條纜車列 (文字不會太長，且帶有運行狀態字眼)
-                        if 6 < len(row_text) < 140 and any(
-                            st in row_text for st in ["運行中", "運休中", "見合わせ", "準備中"]
-                        ):
-                            # 擷取纜車名稱 (去除開頭數字編號如 "67 "，並取到英文或狀態詞之前)
-                            m_lift = re.match(
-                                r"^(?:\d+\s+)?([^\sA-Za-z○×]+)", row_text
-                            )
-                            if m_lift:
-                                lift_name = m_lift.group(1).strip()
-                                # 排除非纜車名稱的誤判
-                                if len(lift_name) >= 2 and not any(
-                                    bad in lift_name for bad in ["運行", "運休", "最終更新", "天気", "気温", "積雪"]
-                                ):
-                                    if "運行中" in row_text:
-                                        status_zh = "運行中"
-                                    elif "見合わせ" in row_text or "準備中" in row_text:
-                                        status_zh = "天候暫停"
-                                    else:
-                                        status_zh = "運行休止"
-
-                                    entry = {
-                                        "resort": resort["name"],
-                                        "lift": lift_name,
-                                        "status": status_zh,
-                                    }
-                                    if entry not in result["lift_status"][zone_name]:
-                                        result["lift_status"][zone_name].append(entry)
-
-    if open_night_spots:
-        result["night_ski"] = open_night_spots
-
-    return result
+    print("雙源資料更新完成：", json.dumps(result, ensure_ascii=False))
 
 
 if __name__ == "__main__":
-    final_data = fetch_with_browser()
-    with open("ski_weather.json", "w", encoding="utf-8") as f:
-        json.dump(final_data, f, ensure_ascii=False, indent=2)
-        f.flush()
-        os.fsync(f.fileno())
-    print("瀏覽器渲染擷取完成：", json.dumps(final_data, ensure_ascii=False))
+    main()
