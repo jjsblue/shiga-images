@@ -40,6 +40,30 @@ ZONE_RESORTS = [
 ]
 
 
+def get_wind_arrow(transform_str):
+    """將 CSS matrix 或 SVG rotate 角度換算為 8 方位風向箭頭"""
+    if not transform_str:
+        return "➤"
+    deg = None
+    m_rot = re.search(r"rotate\(\s*([\-+]?\d+(?:\.\d+)?)", transform_str)
+    if m_rot:
+        deg = float(m_rot.group(1))
+    else:
+        m_mat = re.search(r"matrix\(\s*([\-+]?\d+(?:\.\d+)?)\s*,\s*([\-+]?\d+(?:\.\d+)?)", transform_str)
+        if m_mat:
+            a = float(m_mat.group(1))
+            b = float(m_mat.group(2))
+            deg = math.degrees(math.atan2(b, a))
+
+    if deg is None:
+        return "➤"
+
+    deg = deg % 360
+    arrows = ["↑", "↗", "→", "↘", "↓", "↙", "←", "↖"]
+    idx = int((deg + 22.5) // 45) % 8
+    return arrows[idx]
+
+
 def parse_weathernews_spot(page, spot_key, url):
     """擷取 Weathernews 的 現在の積雪(snow) 以及逐時預報 天気/気温/風/降雪(snowfall)"""
     spot_data = {
@@ -53,7 +77,7 @@ def parse_weathernews_spot(page, spot_key, url):
         page.goto(url, wait_until="domcontentloaded", timeout=30000)
         page.wait_for_timeout(4000)
 
-# 1. 偵測「スキー場の天気」預報表的第一個天氣方塊底色 + 第一個風向箭頭旋轉角度
+        # 1. 偵測「スキー場の天気」預報表第一個天氣方塊底色 + 第一個風向箭頭旋轉角度
         visual_info = page.evaluate("""() => {
             const headings = Array.from(document.querySelectorAll('h2, h3, div, p'));
             const titleEl = headings.find(el => el.textContent.trim() === 'スキー場の天気');
@@ -80,12 +104,11 @@ def parse_weathernews_spot(page, spot_key, url):
                 }
             }
 
-            // 抓取第一個風向箭頭的旋轉角度 (檢查 SVG 或 IMG 的 CSS transform / SVG transform 屬性)
+            // 抓取第一個風向箭頭的旋轉角度
             let windTransform = '';
             const arrowCandidates = Array.from(container.querySelectorAll('svg, img, span, div'));
             for (const el of arrowCandidates) {
                 const rect = el.getBoundingClientRect();
-                // 風向小箭頭的尺寸通常介於 8px ~ 28px 之間
                 if (rect.width >= 8 && rect.width <= 28 && rect.height >= 8 && rect.height <= 28) {
                     const styleTransform = window.getComputedStyle(el).transform;
                     const attrTransform = el.getAttribute('transform') || '';
@@ -139,16 +162,17 @@ def parse_weathernews_spot(page, spot_key, url):
                 if re.match(r"^[\-+]?\d+(?:\.\d+)?$", temp_val):
                     spot_data["temp"] = f"{temp_val}°C"
                 if re.match(r"^\d+(?:\.\d+)?$", wind_val):
-                    spot_data["wind"] = f"➤ {wind_val} m/s"
+                    arrow = get_wind_arrow(visual_info.get("windTransform", "") if visual_info else "")
+                    spot_data["wind"] = f"{arrow} {wind_val} m/s"
                 if re.match(r"^\d+(?:\.\d+)?$", snowfall_val):
                     spot_data["snowfall"] = f"{snowfall_val} cm"
                     snowfall_num = float(snowfall_val)
 
         # 4. 判定天氣圖示 (支援 鮮橘晴天 / 淺藍下雪 / 深藍下雨 / 灰色陰天)
         icon_found = ""
-        if weather_cell_info:
-            combined = f"{weather_cell_info.get('imgAlt', '')} {weather_cell_info.get('imgSrc', '')} {weather_cell_info.get('svgClass', '')}".lower()
-            bg = weather_cell_info.get("bgColor", "")
+        if visual_info:
+            combined = f"{visual_info.get('imgAlt', '')} {visual_info.get('imgSrc', '')} {visual_info.get('svgClass', '')}".lower()
+            bg = visual_info.get("bgColor", "")
 
             if any(k in combined for k in ["晴", "sun", "clear", "/100", "_100", "101"]):
                 icon_found = "☀️"
