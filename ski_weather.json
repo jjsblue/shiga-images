@@ -1,23 +1,23 @@
 {
-  "last_checked": "2026-11-25 17:39 JST",
+  "last_checked": "2026-11-25 18:48 JST",
   "night_ski": [
     "無"
   ],
   "yakebitai": {
-    "icon": "❄️",
+    "icon": "☀️",
     "temp": "-5°C",
     "wind": "➤ 2 m/s",
     "snow": "0.1 cm"
   },
   "ichinose": {
-    "icon": "❄️",
-    "temp": "-5°C",
+    "icon": "☀️",
+    "temp": "-4°C",
     "wind": "➤ 3 m/s",
     "snow": "0.1 cm"
   },
   "hasuike": {
-    "icon": "⛅",
-    "temp": "-3°C",
+    "icon": "☀️",
+    "temp": "-4°C",
     "wind": "➤ 1 m/s",
     "snow": "0 cm"
   },
