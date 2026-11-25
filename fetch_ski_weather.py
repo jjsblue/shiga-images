@@ -130,32 +130,43 @@ def parse_weathernews_spot(page, spot_key, url):
                 }
             }
 
-// 抓取第一個風向箭頭的旋轉角度或檔名 (深入檢查 SVG 內部子元素與 IMG)
+            // 精準定位「風」那一列，並抓出第一個風速格子裡的箭頭元素與旋轉屬性
             let windRaw = '';
-            const arrowCandidates = Array.from(container.querySelectorAll('svg, svg g, svg path, svg polygon, img'));
-            for (const el of arrowCandidates) {
+            let windDebugHtml = '';
+            const allRows = Array.from(container.querySelectorAll('tr, div'));
+            const windRow = allRows.find(el => {
+                const txt = el.textContent || '';
+                return txt.includes('風') && txt.includes('m/s') && el.children.length >= 2 && txt.length < 300;
+            });
+
+            const searchRoot = windRow || container;
+            const arrowEls = Array.from(searchRoot.querySelectorAll('svg, svg g, svg path, svg polygon, img, span, i'));
+            for (const el of arrowEls) {
                 const rect = el.getBoundingClientRect();
-                // 排除過大的天氣方塊 (天氣方塊通常大於 28px)，鎖定 6px ~ 26px 的小箭頭
-                if (rect.width >= 6 && rect.width <= 26 && rect.height >= 6 && rect.height <= 26) {
-                    const styleTransform = window.getComputedStyle(el).transform;
-                    const attrTransform = el.getAttribute('transform') || '';
+                if (rect.width >= 6 && rect.width <= 30 && rect.height >= 6 && rect.height <= 30) {
+                    const st = window.getComputedStyle(el).transform;
+                    const tr = el.getAttribute('transform') || '';
                     const src = el.getAttribute('src') || '';
                     const cls = el.getAttribute('class') || '';
 
-                    if (styleTransform && styleTransform !== 'none') {
-                        windRaw = styleTransform;
+                    if (st && st !== 'none') {
+                        windRaw = st;
+                        windDebugHtml = el.outerHTML.slice(0, 150);
                         break;
                     }
-                    if (attrTransform.includes('rotate')) {
-                        windRaw = attrTransform;
+                    if (tr.includes('rotate')) {
+                        windRaw = tr;
+                        windDebugHtml = el.outerHTML.slice(0, 150);
                         break;
                     }
-                    if (src && (src.includes('wind') || src.includes('arrow') || /\/[nsew]{1,3}\./i.test(src))) {
+                    if (src) {
                         windRaw = src;
+                        windDebugHtml = el.outerHTML.slice(0, 150);
                         break;
                     }
-                    if (cls && (cls.includes('wind') || cls.includes('arrow'))) {
+                    if (cls && (cls.includes('wind') || cls.includes('arrow') || cls.includes('dir'))) {
                         windRaw = cls;
+                        windDebugHtml = el.outerHTML.slice(0, 150);
                         break;
                     }
                 }
@@ -170,7 +181,7 @@ def parse_weathernews_spot(page, spot_key, url):
             };
         }""")
 
-        print(f"[{spot_key}] 風向原始偵測: {visual_info.get('windTransform')}")
+        print(f"[{spot_key}] 風向原始偵測: {visual_info.get('windTransform')} | HTML: {visual_info.get('windDebug')}")
         
         visible_text = page.inner_text("body")
         lines = [line.strip() for line in visible_text.splitlines() if line.strip()]
