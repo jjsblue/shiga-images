@@ -1,5 +1,5 @@
 {
-  "last_checked": "2026-11-25 17:01 JST",
+  "last_checked": "2026-11-25 17:39 JST",
   "night_ski": [
     "無"
   ],
@@ -28,40 +28,66 @@
     "snow": "0 cm"
   },
   "lift_status": {
-    "第一區": [],
+    "第一區": [
+      {
+        "resort": "燒額山",
+        "lift": "焼額山第1ゴンドラ",
+        "status": "運行休止"
+      },
+      {
+        "resort": "燒額山",
+        "lift": "焼額山第2ゴンドラ",
+        "status": "運行休止"
+      },
+      {
+        "resort": "燒額山",
+        "lift": "焼額山第2高速",
+        "status": "運行休止"
+      },
+      {
+        "resort": "燒額山",
+        "lift": "焼額山第3高速",
+        "status": "運行休止"
+      },
+      {
+        "resort": "燒額山",
+        "lift": "焼額山第4ロマンス",
+        "status": "運行休止"
+      },
+      {
+        "resort": "奧志賀高原",
+        "lift": "奥志賀高原ゴンドラ",
+        "status": "天候暫停"
+      },
+      {
+        "resort": "奧志賀高原",
+        "lift": "奥志賀高原第1ペア",
+        "status": "天候暫停"
+      },
+      {
+        "resort": "奧志賀高原",
+        "lift": "奥志賀高原第2高速ペア",
+        "status": "運行休止"
+      },
+      {
+        "resort": "奧志賀高原",
+        "lift": "奥志賀高原第3高速ペア",
+        "status": "天候暫停"
+      },
+      {
+        "resort": "奧志賀高原",
+        "lift": "奥志賀高原第4ペア",
+        "status": "運行休止"
+      }
+    ],
     "第二區": [
       {
-        "resort": "巨人 (Giant)",
-        "lift": "志賀高原リゾートゴンドラ",
-        "status": "運行休止"
-      },
-      {
-        "resort": "巨人 (Giant)",
-        "lift": "ジャイアントペア",
-        "status": "運行休止"
-      },
-      {
-        "resort": "巨人 (Giant)",
+        "resort": "發哺 BUNA 平",
         "lift": "ブナ平ゴンドラ",
         "status": "運行休止"
       },
       {
-        "resort": "巨人 (Giant)",
-        "lift": "西館山クワッド",
-        "status": "運行休止"
-      },
-      {
-        "resort": "巨人 (Giant)",
-        "lift": "西館山第1フーディクワッド",
-        "status": "運行休止"
-      },
-      {
-        "resort": "巨人 (Giant)",
-        "lift": "西館山第2トリプル",
-        "status": "運行休止"
-      },
-      {
-        "resort": "巨人 (Giant)",
+        "resort": "東館山",
         "lift": "東館山ゴンドラ",
         "status": "運行休止"
       },
@@ -76,102 +102,67 @@
         "status": "運行休止"
       },
       {
-        "resort": "寺小屋",
+        "resort": "高天原猛獁",
         "lift": "21B 高天ヶ原第2トリプル",
         "status": "運行休止"
       },
       {
-        "resort": "寺小屋",
+        "resort": "高天原猛獁",
         "lift": "高天ヶ原第3ペア",
         "status": "運行休止"
       },
       {
-        "resort": "寺小屋",
+        "resort": "高天原猛獁",
         "lift": "高天ヶ原クワッド",
         "status": "運行休止"
       },
       {
-        "resort": "寺小屋",
+        "resort": "冷杉森林貂鼠",
         "lift": "一の瀬第8クワッド",
         "status": "運行休止"
       },
       {
-        "resort": "寺小屋",
+        "resort": "一之瀨家庭",
         "lift": "一の瀬クワッド",
         "status": "運行休止"
       },
       {
-        "resort": "寺小屋",
+        "resort": "一之瀨家庭",
         "lift": "一の瀬第2ペアA線",
         "status": "運行休止"
       },
       {
-        "resort": "寺小屋",
+        "resort": "一之瀨家庭",
         "lift": "一の瀬第2ペアB線",
         "status": "運行休止"
       },
       {
-        "resort": "寺小屋",
+        "resort": "一之瀨家庭",
         "lift": "一の瀬第3クワッド",
         "status": "運行休止"
       },
       {
-        "resort": "寺小屋",
+        "resort": "一之瀨鑽石",
         "lift": "一の瀬ダイヤモンドペア",
         "status": "運行休止"
       },
       {
-        "resort": "寺小屋",
+        "resort": "一之瀨鑽石",
         "lift": "一の瀬ダイヤモンドクワッド",
         "status": "運行休止"
       },
       {
-        "resort": "寺小屋",
+        "resort": "一之瀨山神",
         "lift": "一の瀬山の神第2",
-        "status": "運行休止"
-      },
-      {
-        "resort": "寺小屋",
-        "lift": "焼額山第1ゴンドラ",
-        "status": "運行休止"
-      },
-      {
-        "resort": "寺小屋",
-        "lift": "焼額山第2ゴンドラ",
-        "status": "運行休止"
-      },
-      {
-        "resort": "寺小屋",
-        "lift": "焼額山第2高速",
-        "status": "運行休止"
-      },
-      {
-        "resort": "寺小屋",
-        "lift": "焼額山第3高速",
-        "status": "運行休止"
-      },
-      {
-        "resort": "寺小屋",
-        "lift": "焼額山第4ロマンス",
-        "status": "運行休止"
-      },
-      {
-        "resort": "寺小屋",
-        "lift": "奥志賀高原ゴンドラ",
-        "status": "天候暫停"
-      },
-      {
-        "resort": "寺小屋",
-        "lift": "奥志賀高原第1ペア",
-        "status": "天候暫停"
-      },
-      {
-        "resort": "寺小屋",
-        "lift": "奥志賀高原第4ペア",
         "status": "運行休止"
       }
     ],
     "第三區": [
+      {
+        "resort": "太陽谷",
+        "lift": "法坂第1クワッド",
+        "status": "運行休止"
+      },
       {
         "resort": "丸池",
         "lift": "丸池第1トリプルリフト",
@@ -186,14 +177,34 @@
         "resort": "蓮池",
         "lift": "蓮池トリプル",
         "status": "運行休止"
+      },
+      {
+        "resort": "巨人 (Giant)",
+        "lift": "志賀高原リゾートゴンドラ",
+        "status": "運行休止"
+      },
+      {
+        "resort": "巨人 (Giant)",
+        "lift": "ジャイアントペア",
+        "status": "運行休止"
+      },
+      {
+        "resort": "西館山",
+        "lift": "西館山クワッド",
+        "status": "運行休止"
+      },
+      {
+        "resort": "西館山",
+        "lift": "西館山第1フーディクワッド",
+        "status": "運行休止"
+      },
+      {
+        "resort": "西館山",
+        "lift": "西館山第2トリプル",
+        "status": "運行休止"
       }
     ],
     "第四區": [
-      {
-        "resort": "橫手山・涉峠",
-        "lift": "法坂第1クワッド",
-        "status": "運行休止"
-      },
       {
         "resort": "熊之湯",
         "lift": "熊の湯第1ペア",
@@ -220,47 +231,47 @@
         "status": "運行休止"
       },
       {
-        "resort": "熊之湯",
+        "resort": "橫手山",
         "lift": "横手山第1スカイA線",
         "status": "運行休止"
       },
       {
-        "resort": "熊之湯",
+        "resort": "橫手山",
         "lift": "横手山第1スカイＢ線",
         "status": "運行休止"
       },
       {
-        "resort": "熊之湯",
+        "resort": "橫手山",
         "lift": "横手山第2スカイ",
         "status": "運行休止"
       },
       {
-        "resort": "熊之湯",
+        "resort": "橫手山",
         "lift": "横手山第3スカイ",
         "status": "運行休止"
       },
       {
-        "resort": "熊之湯",
+        "resort": "橫手山",
         "lift": "横手山第4ペア",
         "status": "運行中"
       },
       {
-        "resort": "熊之湯",
+        "resort": "橫手山",
         "lift": "横手山第5",
         "status": "運行休止"
       },
       {
-        "resort": "熊之湯",
+        "resort": "橫手山",
         "lift": "横手山第6",
         "status": "運行休止"
       },
       {
-        "resort": "熊之湯",
+        "resort": "橫手山",
         "lift": "横手山スカイレーター",
         "status": "運行休止"
       },
       {
-        "resort": "橫手山・涉峠",
+        "resort": "涉峠",
         "lift": "渋峠第１ロマンス",
         "status": "運行休止"
       }
