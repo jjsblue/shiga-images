@@ -53,8 +53,8 @@ def parse_weathernews_spot(page, spot_key, url):
         page.goto(url, wait_until="domcontentloaded", timeout=30000)
         page.wait_for_timeout(4000)
 
-        # 1. 偵測「スキー場の天気」預報表第一個天氣方塊底色
-        weather_cell_info = page.evaluate("""() => {
+# 1. 偵測「スキー場の天気」預報表的第一個天氣方塊底色 + 第一個風向箭頭旋轉角度
+        visual_info = page.evaluate("""() => {
             const headings = Array.from(document.querySelectorAll('h2, h3, div, p'));
             const titleEl = headings.find(el => el.textContent.trim() === 'スキー場の天気');
             const container = titleEl ? titleEl.parentElement : document.body;
@@ -67,6 +67,7 @@ def parse_weathernews_spot(page, spot_key, url):
             let firstImgAlt = imgs.length > 0 ? (imgs[0].alt || '') : '';
             let firstSvgClass = svgs.length > 0 ? (svgs[0].getAttribute('class') || '') : '';
 
+            // 抓取第一個天氣圖示底色
             let firstWeatherBg = '';
             for (const b of boxes) {
                 const rect = b.getBoundingClientRect();
@@ -79,11 +80,28 @@ def parse_weathernews_spot(page, spot_key, url):
                 }
             }
 
+            // 抓取第一個風向箭頭的旋轉角度 (檢查 SVG 或 IMG 的 CSS transform / SVG transform 屬性)
+            let windTransform = '';
+            const arrowCandidates = Array.from(container.querySelectorAll('svg, img, span, div'));
+            for (const el of arrowCandidates) {
+                const rect = el.getBoundingClientRect();
+                // 風向小箭頭的尺寸通常介於 8px ~ 28px 之間
+                if (rect.width >= 8 && rect.width <= 28 && rect.height >= 8 && rect.height <= 28) {
+                    const styleTransform = window.getComputedStyle(el).transform;
+                    const attrTransform = el.getAttribute('transform') || '';
+                    if ((styleTransform && styleTransform !== 'none') || attrTransform.includes('rotate')) {
+                        windTransform = styleTransform !== 'none' ? styleTransform : attrTransform;
+                        break;
+                    }
+                }
+            }
+
             return {
                 imgSrc: firstImgSrc,
                 imgAlt: firstImgAlt,
                 svgClass: firstSvgClass,
-                bgColor: firstWeatherBg
+                bgColor: firstWeatherBg,
+                windTransform: windTransform
             };
         }""")
 
