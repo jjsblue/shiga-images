@@ -470,6 +470,22 @@
     .close-btn:hover {
         color: #e74c3c; 
     }
+  /* 預設給電腦版：限制最大寬度並置中，避免太大張 */
+.responsive-img {
+    display: block;
+    width: 100%;
+    max-width: 550px; /* 電腦版最寬限制，覺得還太大可調成 450px */
+    height: auto;
+    margin: 15px auto 0 auto; /* 上方留白，左右 auto 自動置中 */
+    border-radius: 8px;
+}
+
+/* 手機版（螢幕 <= 768px）：解除像素限制，維持原本 100% 滿版舒適度 */
+@media (max-width: 768px) {
+    .responsive-img {
+        max-width: 100%;
+    }
+}
 </style>
   </head>
 <body>
@@ -834,7 +850,8 @@
     <!-- 加上 cursor: pointer 讓滑鼠移過去變手指，onclick 觸發放大功能 -->
     <img src="https://github.com/jjsblue/shiga-images/blob/main/taxrefund_1103.jpg?raw=true" 
          alt="日本退稅新制" 
-         style="width: 100%; height: 100%; object-fit: cover; border-radius: 8px; cursor: pointer; transition: 0.3s;" 
+         class="responsive-img"
+         style="cursor: pointer; transition: 0.3s;" 
          onclick="openModal(this.src)"
          onmouseover="this.style.opacity='0.8'" 
          onmouseout="this.style.opacity='1'">
@@ -952,11 +969,13 @@
 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px; margin-top: 20px;">
     <!-- 加上 cursor: pointer 讓滑鼠移過去變手指，onclick 觸發放大功能 -->
     <img src="https://github.com/jjsblue/shiga-images/blob/main/SUPERHOTEL%E4%B8%8A%E9%87%8E%E5%85%A5%E8%B0%B7%E5%8F%A3%E5%82%99%E5%93%81.png?raw=true" 
-         alt="東京住宿備品" 
-         style="width: 100%; height: 100%; object-fit: cover; border-radius: 8px; cursor: pointer; transition: 0.3s;" 
+         alt="東京住宿備品"
+         class="responsive-img"
+         style="cursor: pointer; transition: 0.3s;" 
          onclick="openModal(this.src)"
          onmouseover="this.style.opacity='0.8'" 
-         onmouseout="this.style.opacity='1'">
+         onmouseout="this.style.opacity='1'" 
+>
 </div>
         
     </div>
@@ -994,7 +1013,8 @@
     <!-- 加上 cursor: pointer 讓滑鼠移過去變手指，onclick 觸發放大功能 -->
     <img src="https://github.com/jjsblue/shiga-images/blob/main/hotel_rental.png?raw=true" 
          alt="旅館內雪具租用價格" 
-         style="width: 100%; height: 100%; object-fit: cover; border-radius: 8px; cursor: pointer; transition: 0.3s;" 
+         class="responsive-img"
+         style="cursor: pointer; transition: 0.3s;" 
          onclick="openModal(this.src)"
          onmouseover="this.style.opacity='0.8'" 
          onmouseout="this.style.opacity='1'">
@@ -1078,7 +1098,8 @@
 <div style="display: flex; justify-content: center; margin-top: 20px;">
     <img src="https://github.com/jjsblue/shiga-images/blob/main/26-27shiga_rift.png?raw=true" 
          alt="26-27志賀全山券價格" 
-         style="width: 100%; max-width: 440px; display: block; margin: 0 auto; border-radius: 8px; cursor: pointer; transition: 0.3s;" 
+         class="responsive-img"
+         style="cursor: pointer; transition: 0.3s;" 
          onclick="openModal(this.src)"
          onmouseover="this.style.opacity='0.8'" 
          onmouseout="this.style.opacity='1'">
@@ -1103,11 +1124,13 @@
                         </div>
                 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px; margin-top: 20px;">
                     <img src="https://github.com/jjsblue/shiga-images/blob/main/center_ticket_27.jpg?raw=true" 
-                         alt="26-27志賀中央區價格" 
-                         style="width: 100%; height: 100%; object-fit: cover; border-radius: 8px; cursor: pointer; transition: 0.3s;" 
+                         alt="26-27志賀中央區價格"
+                         class="responsive-img"
+                         style="cursor: pointer; transition: 0.3s;" 
                          onclick="openModal(this.src)"
                          onmouseover="this.style.opacity='0.8'" 
-                         onmouseout="this.style.opacity='1'">
+                         onmouseout="this.style.opacity='1'"
+>
 </div>
                 </div>            
             </div>
@@ -1125,7 +1148,8 @@
                 <strong><a href="https://timetables.jreast.co.jp/#content4" target="_blank" rel="noopener noreferrer">北陸新幹線↗</a>（東京/上野 ↔ 長野站）：</strong> 搭乘「北陸新幹線」前往長野站，單程費用約為 8,000 至 9,000 日圓。
   <img src="https://github.com/jjsblue/shiga-images/blob/main/SHINKANSEN.jpg?raw=true" 
                          alt="26-27北路新幹線時刻表" 
-                         style="width: 100%; height: 100%; object-fit: cover; border-radius: 8px; cursor: pointer; transition: 0.3s;" 
+                         class="responsive-img"
+                         style="cursor: pointer; transition: 0.3s;" 
                          onclick="openModal(this.src)"
                          onmouseover="this.style.opacity='0.8'" 
                          onmouseout="this.style.opacity='1'">
@@ -1135,7 +1159,8 @@
        <strong><a href="https://www.shigakogen.gr.jp/manage/wp-content/uploads/2026/11/26-27-EXP_Timetables.jpg" target="_blank" rel="noopener noreferrer">長野站 ↔ 志賀高原 ↗</a>：</strong>搭乘「長電雪猴/志賀高原特快巴士」，週末及國定假日車上全面實施「無現金支付」（可刷信用卡、交通IC卡、PayPay等）；若要付現，須提前至長野站東口1樓長店巴士售票處「あるよ(Aruyo)」購買紙本車票。
        <img src="https://github.com/jjsblue/shiga-images/blob/main/BUS_SHIGA_BUS.jpg?raw=true" 
                          alt="26-27志賀巴士時刻表" 
-                         style="width: 100%; height: 100%; object-fit: cover; border-radius: 8px; cursor: pointer; transition: 0.3s;" 
+                         class="responsive-img"
+                         style="cursor: pointer; transition: 0.3s;" 
                          onclick="openModal(this.src)"
                          onmouseover="this.style.opacity='0.8'" 
                          onmouseout="this.style.opacity='1'">
