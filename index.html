@@ -1766,5 +1766,24 @@ document.addEventListener("DOMContentLoaded", function() {
     <span class="close-btn" onclick="closeModal(event)">&times;</span>
     <img class="modal-content" id="modalImg">
 </div>
+    <script>
+function forceTextArrows(root = document.body) {
+    const arrowRegex = /([↑↓←→↖↗↘↙↔➤])(?!\uFE0E)/g;
+    const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, null);
+    let node;
+    while ((node = walker.nextNode())) {
+        const parentTag = node.parentElement?.tagName;
+        if (parentTag !== 'SCRIPT' && parentTag !== 'STYLE' && arrowRegex.test(node.nodeValue)) {
+            node.nodeValue = node.nodeValue.replace(arrowRegex, '$1\uFE0E');
+        }
+    }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    forceTextArrows();
+    const observer = new MutationObserver(() => forceTextArrows());
+    observer.observe(document.body, { childList: true, subtree: true, characterData: true });
+});
+</script>
 </body>
 </html>
