@@ -1138,66 +1138,73 @@
     </div>
 
 
-    <div id="transport" class="tab-content">
-        <div class="info-card">
-            <div style="text-align: center;">
-            <h2>🚌 聯外交通</h2>
-                </div>
+<div id="transport" class="tab-content">
+    
+    <!-- 第一張卡片：聯外交通（寬度鎖定 850px 置中，對齊雪票頁第一張卡片） -->
+    <div class="info-card" style="max-width: 850px; margin: 0 auto 25px auto;">
+        <div style="text-align: center; margin-bottom: 15px;">
+            <h2 style="margin-bottom: 5px;">🚌 聯外交通</h2>
+            <span style="font-size: 0.85em; color: #666;">（點擊時刻表圖片可放大檢視）</span>
+        </div>
 
-<div style="background:#e8f4fd; padding:15px; border-radius:8px; margin-bottom:15px; border-left: 5px solid #3498db;">
-                <strong><a href="https://timetables.jreast.co.jp/#content4" target="_blank" rel="noopener noreferrer">北陸新幹線↗</a>（東京/上野 ↔ 長野站）：</strong> 搭乘「北陸新幹線」前往長野站，單程費用約為 8,000 至 9,000 日圓。
-  <img src="https://github.com/jjsblue/shiga-images/blob/main/SHINKANSEN.jpg?raw=true" 
-                         alt="26-27北路新幹線時刻表" 
-                         class="responsive-img"
-                         style="cursor: pointer; transition: 0.3s;" 
-                         onclick="openModal(this.src)"
-                         onmouseover="this.style.opacity='0.8'" 
-                         onmouseout="this.style.opacity='1'">
-  </div>
-            <div style="background:#e8f4fd; padding:15px; border-radius:8px; margin-bottom:15px; border-left: 5px solid #3498db;">
-    <div style="margin-bottom: 10px;">
-       <strong><a href="https://www.shigakogen.gr.jp/manage/wp-content/uploads/2026/11/26-27-EXP_Timetables.jpg" target="_blank" rel="noopener noreferrer">長野站 ↔ 志賀高原 ↗</a>：</strong>搭乘「長電雪猴/志賀高原特快巴士」，週末及國定假日車上全面實施「無現金支付」（可刷信用卡、交通IC卡、PayPay等）；若要付現，須提前至長野站東口1樓長店巴士售票處「あるよ(Aruyo)」購買紙本車票。
-       <img src="https://github.com/jjsblue/shiga-images/blob/main/BUS_SHIGA_BUS.jpg?raw=true" 
-                         alt="26-27志賀巴士時刻表" 
-                         class="responsive-img"
-                         style="cursor: pointer; transition: 0.3s;" 
-                         onclick="openModal(this.src)"
-                         onmouseover="this.style.opacity='0.8'" 
-                         onmouseout="this.style.opacity='1'">
+        <!-- 區塊 1：北陸新幹線 -->
+        <div style="background:#e8f4fd; padding:15px; border-radius:8px; margin-bottom:18px; border-left: 5px solid #3498db; text-align: left; line-height: 1.6;">
+            <strong><a href="https://timetables.jreast.co.jp/#content4" target="_blank" rel="noopener noreferrer">北陸新幹線 ↗</a>（東京/上野 ↔ 長野站）：</strong>
+            搭乘「北陸新幹線」前往長野站，單程費用約為 8,000 至 9,000 日圓。
+            <img src="https://github.com/jjsblue/shiga-images/blob/main/SHINKANSEN.jpg?raw=true" 
+                 alt="26-27北陸新幹線時刻表" 
+                 class="responsive-img"
+                 style="cursor: pointer; transition: 0.3s;" 
+                 onclick="openModal(this.src)"
+                 onmouseover="this.style.opacity='0.8'" 
+                 onmouseout="this.style.opacity='1'">
+        </div>
+
+        <!-- 區塊 2：長電特快巴士 -->
+        <div style="background:#e8f4fd; padding:15px; border-radius:8px; border-left: 5px solid #3498db; text-align: left; line-height: 1.6;">
+            <strong><a href="https://www.shigakogen.gr.jp/manage/wp-content/uploads/2026/11/26-27-EXP_Timetables.jpg" target="_blank" rel="noopener noreferrer">長野站 ↔ 志賀高原 ↗</a>：</strong>
+            搭乘「長電雪猴/志賀高原特快巴士」，週末及國定假日車上全面實施「無現金支付」（可刷信用卡、交通IC卡、PayPay等）；若要付現，須提前至長野站東口1樓長電巴士售票處「あるよ(Aruyo)」購買紙本車票。
+            <img src="https://github.com/jjsblue/shiga-images/blob/main/BUS_SHIGA_BUS.jpg?raw=true" 
+                 alt="26-27志賀巴士時刻表" 
+                 class="responsive-img"
+                 style="cursor: pointer; transition: 0.3s;" 
+                 onclick="openModal(this.src)"
+                 onmouseover="this.style.opacity='0.8'" 
+                 onmouseout="this.style.opacity='1'">
+        </div>
     </div>
 
-</div>
-                            <div style="text-align: center;">
-    <h2>🚌 區內接駁車時刻表 (Shuttle Bus)</h2>
-    </div>
-            <div style="background:#fef9e7; padding:15px; border-radius:8px; border-left: 5px solid #f1c40f;">
-                完全免費、免出示雪票，在時刻表黃底時段內的接駁巴士對所有遊客免費開放。<br><br>
-                ⚠️ <strong>注意：</strong> 雪場旅館來回橫手山/熊之湯 (第四區) 都必須搭接駁巴士在 山の駅 轉車，請務必留意轉乘時間以免回不了飯店！</div>          
+    <!-- 第二張卡片：區內接駁車時刻表（寬度鎖定 850px 置中，對齊雪票頁第二張卡片） -->
+    <div class="info-card" style="max-width: 850px; margin: 0 auto;">
+        <div style="text-align: center; margin-bottom: 15px;">
+            <h2>🚌 區內接駁車時刻表 (Shuttle Bus)</h2>
+        </div>
 
+        <div style="background:#fef9e7; padding:15px; border-radius:8px; border-left: 5px solid #f1c40f; text-align: left; line-height: 1.6;">
+            完全免費、免出示雪票，在時刻表黃底時段內的接駁巴士對所有遊客免費開放。<br><br>
+            ⚠️ <strong>注意：</strong> 雪場旅館來回橫手山/熊之湯 (第四區) 都必須搭接駁巴士在「山の駅」轉車，請務必留意轉乘時間以免回不了飯店！
+        </div>
 
-    <div style="margin-top: 15px; text-align: left; background: #f4f7f6; padding: 15px; border-radius: 8px; border-left: 5px solid #f06d06;">
-        <p style="margin: 0 0 10px 0; color: #333; font-size: 0.95em; line-height: 1.6;">
-            💡 <strong>搭乘小撇步：</strong><br>
-            時刻表中的 <span style="background: #fff59d; padding: 2px 6px; border-radius: 4px; color: #333;">黃色底色區塊</span> 為免費接駁區間時間。<br>
-            若是從山下「湯田中站」往返，或是搭乘「白色底色」區間，一定要記得抽取整理券並支付車資（例如：湯田中 ➔ 奧志賀高原 單程 ¥1,100）。
-        </p>
-        <a href="https://okushigakogen.com/assets/pdf/shuttle_bus.pdf" target="_blank" rel="noopener noreferrer" style="display: inline-block; background: #f06d06; color: #fff; padding: 8px 16px; text-decoration: none; border-radius: 5px; font-weight: bold; font-size: 0.9em; margin-top: 5px;">
-            📱 點此全螢幕開啟 / 下載官方 PDF
-        </a>
-    </div>
+        <div style="margin-top: 15px; text-align: left; background: #f4f7f6; padding: 15px; border-radius: 8px; border-left: 5px solid #f06d06;">
+            <p style="margin: 0 0 10px 0; color: #333; font-size: 0.95em; line-height: 1.6;">
+                💡 <strong>搭乘小撇步：</strong><br>
+                時刻表中的 <span style="background: #fff59d; padding: 2px 6px; border-radius: 4px; color: #333;">黃色底色區塊</span> 為免費接駁區間時間。<br>
+                若是從山下「湯田中站」往返，或是搭乘「白色底色」區間，一定要記得抽取整理券並支付車資（例如：湯田中 ➔ 奧志賀高原 單程 ¥1,100）。
+            </p>
+            <a href="https://okushigakogen.com/assets/pdf/shuttle_bus.pdf" target="_blank" rel="noopener noreferrer" style="display: inline-block; background: #f06d06; color: #fff; padding: 8px 16px; text-decoration: none; border-radius: 5px; font-weight: bold; font-size: 0.9em; margin-top: 5px;">
+                📱 點此全螢幕開啟 / 下載官方 PDF
+            </a>
+        </div>
 
-    <div style="margin-top: 20px; border-radius: 8px; overflow: hidden; border: 1px solid #ddd; height: 60vh; min-height: 500px; position: relative;">
-<iframe
-    src="./pdf-viewer.html"
-    width="100%"
-    height="100%"
-    style="border: none;"
-    title="Shiga Kogen Shuttle Bus Timetable"
-    loading="lazy">
-</iframe>
-    </div>
-</div>
-            </div>
+        <div style="margin-top: 20px; border-radius: 8px; overflow: hidden; border: 1px solid #ddd; height: 60vh; min-height: 500px; position: relative;">
+            <iframe
+                src="./pdf-viewer.html"
+                width="100%"
+                height="100%"
+                style="border: none;"
+                title="Shiga Kogen Shuttle Bus Timetable"
+                loading="lazy">
+            </iframe>
         </div>
     </div>
 
