@@ -42,51 +42,35 @@ ZONE_RESORTS = [
 
 
 def get_wind_arrow(wind_raw):
-    """支援 CSS matrix、SVG rotate 角度，以及 Weathernews 方位檔名/類名"""
+    """直接解析 Weathernews 風向圖檔編號 (wind_X_0.png ~ wind_X_15.png) 並轉為箭頭實際指向"""
     if not wind_raw:
         return "➤"
 
-    raw_lower = wind_raw.lower()
+    raw_lower = str(wind_raw).lower()
 
-    # 1. 先比對檔名或 class 裡的方位代碼 (16方位或8方位縮寫)
-    dir_map = [
-        ("nne", "↗"), ("ene", "↗"), ("ne", "↗"),
-        ("ese", "↘"), ("sse", "↘"), ("se", "↘"),
-        ("ssw", "↙"), ("wsw", "↙"), ("sw", "↙"),
-        ("wnw", "↖"), ("nnw", "↖"), ("nw", "↖"),
-        ("north", "↑"), ("south", "↓"), ("east", "→"), ("west", "←"),
-        ("_n.", "↑"), ("_s.", "↓"), ("_e.", "→"), ("_w.", "←"),
-        ("/n.", "↑"), ("/s.", "↓"), ("/e.", "→"), ("/w.", "←"),
-    ]
-    for code, symbol in dir_map:
-        if code in raw_lower:
-            return symbol
-
-    # 2. 比對數字編號 (Weathernews 常見 1~16 或 0~15 方位圖示編號)
-    m_num = re.search(r"(?:wind|arrow|dir)[_\-]?0?(\d{1,2})\b", raw_lower)
-    if m_num:
-        idx16 = int(m_num.group(1)) % 16
-        arrows16 = ["↑", "↗", "↗", "↗", "→", "↘", "↘", "↘", "↓", "↙", "↙", "↙", "←", "↖", "↖", "↖"]
+    # 解析 wind_0_13.png 結尾的 0~15 氣象風向編號 (0=北風↓, 4=東風←, 8=南風↑, 12=西風→, 13=西北西風↘)
+    m_wn = re.search(r"wind_\d+_(\d{1,2})\.(?:png|svg|gif|jpg)", raw_lower)
+    if m_wn:
+        idx16 = int(m_wn.group(1)) % 16
+        arrows16 = [
+            "↓",  # 0: N (北風 -> 箭頭朝下)
+            "↙",  # 1: NNE (北北東風)
+            "↙",  # 2: NE (東北風)
+            "↙",  # 3: ENE (東北東風)
+            "←",  # 4: E (東風 -> 箭頭朝左)
+            "↖",  # 5: ESE (東南東風)
+            "↖",  # 6: SE (東南風)
+            "↖",  # 7: SSE (南南東風)
+            "↑",  # 8: S (南風 -> 箭頭朝上)
+            "↗",  # 9: SSW (南南西風)
+            "↗",  # 10: SW (西南風)
+            "↗",  # 11: WSW (西南西風)
+            "→",  # 12: W (西風 -> 箭頭朝右)
+            "↘",  # 13: WNW (西北西風 -> 箭頭朝右偏右下，對應 wind_0_13.png)
+            "↘",  # 14: NW (西北風)
+            "↘",  # 15: NNW (北北西風)
+        ]
         return arrows16[idx16]
-
-    # 3. 比對旋轉角度 rotate(deg) 或 CSS matrix(a, b, ...)
-    deg = None
-    m_rot = re.search(r"rotate\(\s*([\-+]?\d+(?:\.\d+)?)", wind_raw)
-    if m_rot:
-        deg = float(m_rot.group(1))
-    else:
-        m_mat = re.search(r"matrix\(\s*([\-+]?\d+(?:\.\d+)?)\s*,\s*([\-+]?\d+(?:\.\d+)?)", wind_raw)
-        if m_mat:
-            a = float(m_mat.group(1))
-            b = float(m_mat.group(2))
-            deg = math.degrees(math.atan2(b, a))
-
-    if deg is not None:
-        # 加上 180 度校正 Weathernews 箭頭的預設朝向基準，使其與畫面視覺一致
-        deg = (deg + 180) % 360
-        arrows = ["↑", "↗", "→", "↘", "↓", "↙", "←", "↖"]
-        idx = int((deg + 22.5) // 45) % 8
-        return arrows[idx]
 
     return "➤"
 
