@@ -1,5 +1,6 @@
 from datetime import datetime, timedelta, timezone
 import json
+import math
 import os
 import re
 from playwright.sync_api import sync_playwright
@@ -81,7 +82,8 @@ def get_wind_arrow(wind_raw):
             deg = math.degrees(math.atan2(b, a))
 
     if deg is not None:
-        deg = deg % 360
+        # 加上 180 度校正 Weathernews 箭頭的預設朝向基準，使其與畫面視覺一致
+        deg = (deg + 180) % 360
         arrows = ["↑", "↗", "→", "↘", "↓", "↙", "←", "↖"]
         idx = int((deg + 22.5) // 45) % 8
         return arrows[idx]
@@ -102,7 +104,7 @@ def parse_weathernews_spot(page, spot_key, url):
         page.goto(url, wait_until="domcontentloaded", timeout=30000)
         page.wait_for_timeout(4000)
 
-        # 1. 偵測「スキー場の天気」預報表第一個天氣方塊底色 + 第一個風向箭頭旋轉角度
+        # 1. 偵測「スキー場の天気」預報表第一個天氣方塊底色 + 「風」列第一個風向箭頭旋轉角度
         visual_info = page.evaluate("""() => {
             const headings = Array.from(document.querySelectorAll('h2, h3, div, p'));
             const titleEl = headings.find(el => el.textContent.trim() === 'スキー場の天気');
@@ -129,13 +131,26 @@ def parse_weathernews_spot(page, spot_key, url):
                 }
             }
 
-
-            // 抓取第一個風向箭頭的旋轉角度或檔名 (深入檢查 SVG 內部子元素與 IMG)
+            // 精準鎖定「風」這一列，取得第一個時間格子的風向箭頭旋轉角度或檔名
             let windRaw = '';
-            const arrowCandidates = Array.from(container.querySelectorAll('svg, svg g, svg path, svg polygon, img'));
+            const leafNodes = Array.from(container.querySelectorAll('*'));
+            const windLabel = leafNodes.find(el => el.children.length === 0 && el.textContent.trim() === '風');
+            let searchArea = container;
+            if (windLabel) {
+                // 往上尋找包含「風」標籤與時間資料格的共同列容器
+                let p = windLabel.parentElement;
+                for (let depth = 0; depth < 4 && p; depth++) {
+                    if (p.querySelectorAll('svg, img').length > 0) {
+                        searchArea = p;
+                        break;
+                    }
+                    p = p.parentElement;
+                }
+            }
+
+            const arrowCandidates = Array.from(searchArea.querySelectorAll('svg, svg g, svg path, svg polygon, img'));
             for (const el of arrowCandidates) {
                 const rect = el.getBoundingClientRect();
-                // 排除過大的天氣方塊 (天氣方塊通常大於 28px)，鎖定 6px ~ 26px 的小箭頭
                 if (rect.width >= 6 && rect.width <= 26 && rect.height >= 6 && rect.height <= 26) {
                     const styleTransform = window.getComputedStyle(el).transform;
                     const attrTransform = el.getAttribute('transform') || '';
@@ -150,7 +165,7 @@ def parse_weathernews_spot(page, spot_key, url):
                         windRaw = attrTransform;
                         break;
                     }
-                    if (src && (src.includes('wind') || src.includes('arrow') || /\/[nsew]{1,3}\./i.test(src))) {
+                    if (src && (src.includes('wind') || src.includes('arrow') || /\\/[nsew]{1,3}\\./i.test(src))) {
                         windRaw = src;
                         break;
                     }
@@ -175,15 +190,15 @@ def parse_weathernews_spot(page, spot_key, url):
         visible_text = page.inner_text("body")
         lines = [line.strip() for line in visible_text.splitlines() if line.strip()]
 
-        # 2. 擷取畫面上方的「現在の積雪」 -> 存入 snow
-        for i in range(len(lines) - 1):
-            if lines[i] == "現在の積雪":
-                raw_depth = lines[i + 1].strip()
-                if re.match(r"^\d+(?:\.\d+)?$", raw_depth):
-                    spot_data["snow"] = f"{raw_depth} cm"
-                else:
-                    spot_data["snow"] = "-- cm"
-                break
+        # 2. 擷取畫面上方的「現在の積雪」 -> 存入 snow (支援同一行或跨行、有無 cm 單位)
+        m_snow_block = re.search(r"現在の積雪\s*([^\n\r]{1,20})", visible_text)
+        if m_snow_block:
+            raw_depth = m_snow_block.group(1).strip()
+            m_num = re.search(r"(\d+(?:\.\d+)?)", raw_depth)
+            if m_num:
+                spot_data["snow"] = f"{m_num.group(1)} cm"
+            else:
+                spot_data["snow"] = "-- cm"
 
         # 3. 擷取逐時預報表的 気温 / 風 / 降雪 -> 降雪存入 snowfall
         start_idx = -1
