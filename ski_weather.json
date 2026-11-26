@@ -1,5 +1,5 @@
 {
-  "last_checked": "2026-11-26 12:04 JST",
+  "last_checked": "2026-11-26 12:26 JST",
   "night_ski": [
     "無"
   ],
@@ -13,21 +13,21 @@
   "ichinose": {
     "icon": "☀️",
     "temp": "0°C",
-    "wind": "↗ 3 m/s",
+    "wind": "→ 3 m/s",
     "snow": "-- cm",
     "snowfall": "0 cm"
   },
   "hasuike": {
     "icon": "☀️",
     "temp": "4°C",
-    "wind": "↗ 2 m/s",
+    "wind": "→ 2 m/s",
     "snow": "-- cm",
     "snowfall": "0 cm"
   },
   "yokoteyama": {
     "icon": "☀️",
     "temp": "1°C",
-    "wind": "↗ 3 m/s",
+    "wind": "↘ 3 m/s",
     "snow": "20 cm",
     "snowfall": "0 cm"
   },
