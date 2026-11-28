@@ -1,33 +1,33 @@
 {
-  "last_checked": "2026-11-27 22:51 JST",
+  "last_checked": "2026-11-28 12:19 JST",
   "night_ski": [
     "無"
   ],
   "yakebitai": {
-    "icon": "☀️",
-    "temp": "0°C",
-    "wind": "↑ 3 m/s",
+    "icon": "☁️",
+    "temp": "7°C",
+    "wind": "↗ 2 m/s",
     "snow": "-- cm",
     "snowfall": "0 cm"
   },
   "ichinose": {
-    "icon": "☀️",
-    "temp": "0°C",
+    "icon": "☁️",
+    "temp": "7°C",
     "wind": "↗ 3 m/s",
     "snow": "-- cm",
     "snowfall": "0 cm"
   },
   "hasuike": {
-    "icon": "☀️",
-    "temp": "4°C",
-    "wind": "↖ 2 m/s",
+    "icon": "☁️",
+    "temp": "9°C",
+    "wind": "→ 1 m/s",
     "snow": "-- cm",
     "snowfall": "0 cm"
   },
   "yokoteyama": {
-    "icon": "☀️",
-    "temp": "1°C",
-    "wind": "↑ 2 m/s",
+    "icon": "☁️",
+    "temp": "8°C",
+    "wind": "→ 2 m/s",
     "snow": "15 cm",
     "snowfall": "0 cm"
   },
@@ -222,7 +222,7 @@
       {
         "resort": "熊之湯",
         "lift": "熊の湯第2ペアB線",
-        "status": "天候暫停"
+        "status": "運行中"
       },
       {
         "resort": "熊之湯",
