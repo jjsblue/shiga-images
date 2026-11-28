@@ -1,33 +1,33 @@
 {
-  "last_checked": "2026-11-28 12:19 JST",
+  "last_checked": "2026-11-28 21:59 JST",
   "night_ski": [
     "無"
   ],
   "yakebitai": {
     "icon": "☁️",
-    "temp": "7°C",
-    "wind": "↗ 2 m/s",
-    "snow": "-- cm",
-    "snowfall": "0 cm"
-  },
-  "ichinose": {
-    "icon": "☁️",
-    "temp": "7°C",
-    "wind": "↗ 3 m/s",
-    "snow": "-- cm",
-    "snowfall": "0 cm"
-  },
-  "hasuike": {
-    "icon": "☁️",
-    "temp": "9°C",
+    "temp": "-1°C",
     "wind": "→ 1 m/s",
     "snow": "-- cm",
     "snowfall": "0 cm"
   },
+  "ichinose": {
+    "icon": "❄️",
+    "temp": "-1°C",
+    "wind": "→ 3 m/s",
+    "snow": "-- cm",
+    "snowfall": "0 cm"
+  },
+  "hasuike": {
+    "icon": "❄️",
+    "temp": "0°C",
+    "wind": "↘ 2 m/s",
+    "snow": "-- cm",
+    "snowfall": "0 cm"
+  },
   "yokoteyama": {
-    "icon": "☁️",
-    "temp": "8°C",
-    "wind": "→ 2 m/s",
+    "icon": "❄️",
+    "temp": "-2°C",
+    "wind": "↘ 3 m/s",
     "snow": "15 cm",
     "snowfall": "0 cm"
   },
@@ -257,7 +257,7 @@
       {
         "resort": "橫手山",
         "lift": "横手山第4ペア",
-        "status": "運行中"
+        "status": "運行休止"
       },
       {
         "resort": "橫手山",
